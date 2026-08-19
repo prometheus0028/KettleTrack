@@ -1,0 +1,70 @@
+2026-08-19T16:34:01.594Z --- logWash called ---
+2026-08-19T16:34:01.623Z session fetched true error: null
+2026-08-19T16:46:24.021Z --- logWash called ---
+2026-08-19T16:46:24.040Z session fetched true error: null
+2026-08-19T16:46:33.808Z --- logWash called ---
+2026-08-19T16:46:33.813Z session fetched true error: null
+2026-08-19T16:46:42.636Z --- logWash called ---
+2026-08-19T16:46:42.642Z session fetched true error: null
+2026-08-19T16:46:59.473Z --- logWash called ---
+2026-08-19T16:46:59.479Z session fetched true error: null
+2026-08-19T16:47:12.939Z --- logWash called ---
+2026-08-19T16:47:12.949Z session fetched true error: null
+2026-08-19T16:47:23.581Z --- logWash called ---
+2026-08-19T16:47:23.588Z session fetched true error: null
+2026-08-19T16:47:36.691Z --- logWash called ---
+2026-08-19T16:47:36.697Z session fetched true error: null
+2026-08-19T16:53:21.328Z --- logWash called ---
+2026-08-19T16:53:21.336Z session fetched true error: null
+2026-08-19T16:53:22.413Z logWash error: 
+Invalid `prisma.washLog.create()` invocation:
+
+{
+  data: {
+    roomId: "daf51b98-5f14-4888-bcfa-fbe88010926b",
+    washedById: "bb41d318-71fd-4e92-a552-821539e779f9",
+    expectedTurnUserId: "a3fbf283-9566-472f-9af9-efbd2b65e7eb",
+    isOverride: true,
+    favorSettled: true,
+    ~~~~~~~~~~~~
+    note: "one favor settled",
+    joke: "The scales of kettle justice have leveled out.",
+?   id?: String,
+?   washedAt?: DateTime,
+?   favors?: FavorUncheckedCreateNestedManyWithoutWashLogInput
+  }
+}
+
+Unknown argument `favorSettled`. Available options are marked with ?.
+2026-08-19T16:53:26.431Z --- logWash called ---
+2026-08-19T16:53:26.443Z session fetched true error: null
+2026-08-19T16:53:27.494Z logWash error: 
+Invalid `prisma.washLog.create()` invocation:
+
+{
+  data: {
+    roomId: "daf51b98-5f14-4888-bcfa-fbe88010926b",
+    washedById: "bb41d318-71fd-4e92-a552-821539e779f9",
+    expectedTurnUserId: "a3fbf283-9566-472f-9af9-efbd2b65e7eb",
+    isOverride: true,
+    favorSettled: true,
+    ~~~~~~~~~~~~
+    note: "one favor settled",
+    joke: "The debt is cleared. You may now return to your normal lives.",
+?   id?: String,
+?   washedAt?: DateTime,
+?   favors?: FavorUncheckedCreateNestedManyWithoutWashLogInput
+  }
+}
+
+Unknown argument `favorSettled`. Available options are marked with ?.
+2026-08-19T16:55:21.563Z --- logWash called ---
+2026-08-19T16:55:21.582Z session fetched true error: null
+2026-08-19T16:55:32.632Z --- logWash called ---
+2026-08-19T16:55:32.642Z session fetched true error: null
+2026-08-19T16:55:40.586Z --- logWash called ---
+2026-08-19T16:55:40.596Z session fetched true error: null
+2026-08-19T17:19:46.190Z --- logWash called ---
+2026-08-19T17:19:46.927Z session fetched true error: null
+2026-08-19T17:20:03.371Z --- nudgeUser called --- bb41d318-71fd-4e92-a552-821539e779f9 daf51b98-5f14-4888-bcfa-fbe88010926b
+2026-08-19T17:20:03.384Z session fetched true error: null

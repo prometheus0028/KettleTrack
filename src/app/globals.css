@@ -1,26 +1,108 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* 
+  Splitwise uses:
+  Green (Get back/Positive/Primary): #5bc5a7
+  Orange (You owe/Negative): #ff652f
+  Light theme background: #f3f3f3
+  Dark theme background: #1C1C1E
+*/
 
-@theme inline {
+@theme {
+  --color-split-green: #5bc5a7;
+  --color-split-orange: #ff652f;
+  
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--card);
+  --color-popover-foreground: var(--card-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--border);
+  --color-input-bg: var(--input-bg);
+
+  --radius-lg: 0.5rem;
 }
 
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #f8f6f0;
+    --foreground: #36322b;
+    --card: #ffffff;
+    --card-foreground: #36322b;
+    --primary: #1cc29f;
+    --primary-foreground: #ffffff;
+    --secondary: #ede9df;
+    --secondary-foreground: #6b6458;
+    --muted: #ede9df;
+    --muted-foreground: #9a9486;
+    --border: #e6e2d8;
+    --input-bg: #fafafa;
+  }
+
+  .dark {
+    --background: #1C1C1E;
+    --foreground: #f0f0f0;
+    --card: #2C2C2E;
+    --card-foreground: #ffffff;
+    --primary: #1cc29f;
+    --primary-foreground: #ffffff;
+    --secondary: #3A3A3C;
+    --secondary-foreground: #d1d1d6;
+    --muted: #3A3A3C;
+    --muted-foreground: #8e8e93;
+    --border: #3A3A3C;
+    --input-bg: #1C1C1E;
+  }
+
+  * {
+    border-color: var(--color-border);
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-inter), sans-serif;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent; 
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-muted); 
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-muted-foreground); 
+}
+
+@keyframes fillUpHeight {
+  0% {
+    height: 0%;
+  }
+  100% {
+    height: 100%;
+  }
+}
+
+.animate-fill-up {
+  animation: fillUpHeight 1.5s ease-in-out infinite alternate;
 }

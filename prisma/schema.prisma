@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  rooms         RoomMember[]
+  washLogs      WashLog[] @relation("WashedBy")
+  favorsOwed    Favor[]   @relation("FavorsOwed")
+  favorsCovered Favor[]   @relation("FavorsCovered")
+  pushSubscriptions    PushSubscription[]
+  nudgesSent           NudgeLog[]         @relation("Nudger")
+  nudgesReceived       NudgeLog[]         @relation("Nudged")
+  
+  notifyNudge          Boolean            @default(true)
+  notifyOverride       Boolean            @default(true)
+  notifyNextTurn       Boolean            @default(true)
+  notifyNextTurnFavor  Boolean            @default(true)
+  notifyFavorFulfilled Boolean            @default(true)
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+}
+
+model Room {
+  id        String   @id @default(uuid())
+  name      String
+  ownerId   String
+  joinCode  String   @unique
+  createdAt DateTime @default(now())
+  members   RoomMember[]
+  washLogs  WashLog[]
+  favors    Favor[]
+  nudgeLogs NudgeLog[]
+}
+
+model RoomMember {
+  id       String  @id @default(uuid())
+  roomId   String
+  userId   String
+  position Int
+  isActive Boolean @default(true)
+  joinedAt DateTime @default(now())
+  room     Room    @relation(fields: [roomId], references: [id])
+  user     User    @relation(fields: [userId], references: [id])
+
+  @@unique([roomId, userId])
+}
+
+model WashLog {
+  id                 String   @id @default(uuid())
+  roomId             String
+  washedById         String
+  expectedTurnUserId String?
+  isOverride         Boolean  @default(false)
+  favorSettled       Boolean  @default(false)
+  joke               String?
+  note               String?
+  washedAt           DateTime @default(now())
+  room               Room     @relation(fields: [roomId], references: [id])
+  washedBy           User     @relation("WashedBy", fields: [washedById], references: [id])
+  favorsCreated      Favor[]
+}
+
+model Favor {
+  id               String    @id @default(uuid())
+  roomId           String
+  owedByUserId     String
+  coveredByUserId  String
+  washLogId        String
+  settled          Boolean   @default(false)
+  settledAt        DateTime?
+  room             Room      @relation(fields: [roomId], references: [id])
+  washLog          WashLog   @relation(fields: [washLogId], references: [id])
+  owedByUser       User      @relation("FavorsOwed", fields: [owedByUserId], references: [id])
+  coveredByUser    User      @relation("FavorsCovered", fields: [coveredByUserId], references: [id])
+}
+
+model NudgeLog {
+  id          String   @id @default(uuid())
+  roomId      String
+  nudgerId    String
+  nudgedId    String
+  joke        String?
+  createdAt   DateTime @default(now())
+  room        Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  nudger      User     @relation("Nudger", fields: [nudgerId], references: [id], onDelete: Cascade)
+  nudged      User     @relation("Nudged", fields: [nudgedId], references: [id], onDelete: Cascade)
+}
