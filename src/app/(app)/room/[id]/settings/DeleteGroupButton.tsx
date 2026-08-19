@@ -1,12 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { useFormStatus } from 'react-dom'
+import { SubmitButton } from '@/components/SubmitButton'
 import { Trash2 } from 'lucide-react'
 
 export function DeleteGroupButton() {
   const [showConfirm, setShowConfirm] = useState(false)
-  const { pending } = useFormStatus()
 
   return (
     <>
@@ -34,20 +33,11 @@ export function DeleteGroupButton() {
               >
                 Cancel
               </button>
-              <button
-                type="submit"
-                disabled={pending}
+              <SubmitButton
+                defaultText="Delete it"
+                successText="Deleted"
                 className="flex-1 bg-[#ff652f] text-white py-3.5 rounded-xl font-medium text-[15px] hover:bg-[#e55b2a] active:scale-[0.98] transition-all shadow-sm disabled:opacity-70 flex justify-center items-center gap-2"
-              >
-                {pending ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                ) : (
-                  <>
-                    <Trash2 className="w-4 h-4" />
-                    Delete it
-                  </>
-                )}
-              </button>
+              />
             </div>
           </div>
         </div>

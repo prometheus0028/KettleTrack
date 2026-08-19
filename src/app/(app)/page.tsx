@@ -1,7 +1,7 @@
 import { prisma } from '@/utils/prisma'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import { TransitionLink } from '@/components/TransitionLink'
+import { SubmitButton } from '@/components/SubmitButton'
 import Link from 'next/link'
 import { Search } from 'lucide-react'
 import { createRoom, joinRoom } from '@/app/actions'
@@ -154,9 +154,10 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
                       autoFocus
                     />
                   </div>
-                  <button className="w-full bg-[#1cc29f] text-white py-4 rounded-xl font-semibold text-[16px] shadow-sm shadow-[#1cc29f]/20 hover:bg-[#159e80] hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0 transition-all flex items-center justify-center gap-2">
-                    Create Room <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                  </button>
+                  <SubmitButton 
+                    defaultText="Create Room"
+                    className="w-full bg-[#1cc29f] text-white py-4 rounded-xl font-semibold text-[16px] shadow-sm shadow-[#1cc29f]/20 hover:bg-[#159e80] hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0 transition-all flex items-center justify-center gap-2"
+                  />
                 </form>
               </div>
             ) : action === 'join' ? (
@@ -183,9 +184,10 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
                       autoFocus
                     />
                   </div>
-                  <button className="w-full bg-[#1cc29f] text-white py-4 rounded-xl font-semibold text-[16px] shadow-sm shadow-[#1cc29f]/20 hover:bg-[#159e80] hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0 transition-all flex items-center justify-center gap-2">
-                    Join Room <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                  </button>
+                  <SubmitButton 
+                    defaultText="Join Room"
+                    className="w-full bg-[#1cc29f] text-white py-4 rounded-xl font-semibold text-[16px] shadow-sm shadow-[#1cc29f]/20 hover:bg-[#159e80] hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0 transition-all flex items-center justify-center gap-2"
+                  />
                 </form>
               </div>
             ) : (

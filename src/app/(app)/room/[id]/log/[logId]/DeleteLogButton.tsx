@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useFormStatus } from 'react-dom'
+import { SubmitButton } from '@/components/SubmitButton'
 
 export function DeleteLogButton() {
   const [showConfirm, setShowConfirm] = useState(false)
@@ -32,17 +32,11 @@ export function DeleteLogButton() {
               >
                 Cancel
               </button>
-              <button
-                type="submit"
-                disabled={pending}
+              <SubmitButton
+                defaultText="Yes, delete it"
+                successText="Deleted"
                 className="flex-1 bg-[#ff652f] text-white py-3.5 rounded-xl font-medium text-[15px] hover:bg-[#e55b2a] active:scale-[0.98] transition-all shadow-sm disabled:opacity-70 flex justify-center items-center"
-              >
-                {pending ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                ) : (
-                  'Yes, delete it'
-                )}
-              </button>
+              />
             </div>
           </div>
         </div>

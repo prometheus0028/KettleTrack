@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { updateRoomName } from '../actions'
+import { SubmitButton } from '@/components/SubmitButton'
 
 export function RoomNameForm({ roomId, initialName }: { roomId: string, initialName: string }) {
   const [successMsg, setSuccessMsg] = useState('')
@@ -34,9 +35,11 @@ export function RoomNameForm({ roomId, initialName }: { roomId: string, initialN
           className="flex-1 bg-input-bg border border-[var(--border)] rounded-lg p-3 text-[15px] focus:outline-none focus:border-[#1cc29f] text-[var(--foreground)]"
           required
         />
-        <button className="bg-[#1cc29f] text-white px-5 py-3 rounded-lg font-medium text-[15px] hover:bg-[#159e80] active:scale-95 transition-all">
-          Save
-        </button>
+        <SubmitButton 
+          defaultText="Save"
+          successText="Saved"
+          className="bg-[#1cc29f] text-white px-5 py-3 rounded-lg font-medium text-[15px] hover:bg-[#159e80] active:scale-95 transition-all"
+        />
       </form>
     </div>
   )

@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { PushToggle } from './PushToggle'
+import { SubmitButton } from '@/components/SubmitButton'
 
 const PIXEL_AVATARS = [
   'https://api.dicebear.com/9.x/pixel-art/svg?seed=Felix',
@@ -95,9 +96,11 @@ export function ProfileClientView({ user, updateProfileAction }: { user: any, up
               <PushToggle user={user} />
             </div>
 
-            <button suppressHydrationWarning className="w-full bg-[#1cc29f] hover:bg-[#159e80] active:scale-[0.98] text-white py-3 rounded-lg text-[15px] font-semibold transition-all mt-8">
-              Save Changes
-            </button>
+            <SubmitButton 
+              defaultText="Save Changes"
+              successText="Saved!"
+              className="w-full bg-[#1cc29f] hover:bg-[#159e80] active:scale-[0.98] text-white py-3 rounded-lg text-[15px] font-semibold transition-all mt-8"
+            />
           </form>
         </div>
       </div>
