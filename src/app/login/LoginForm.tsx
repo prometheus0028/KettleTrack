@@ -15,18 +15,6 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState(errorParam ? `Error: ${errorParam}. ${msgParam ? decodeURIComponent(msgParam) : 'Authentication failed.'}` : '')
 
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session && event === 'SIGNED_IN') {
-        window.location.href = '/'
-      }
-    })
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [supabase.auth])
-
   const handleGoogleLogin = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
