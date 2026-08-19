@@ -1,5 +1,6 @@
 'use client'
 
+import { loginWithGoogle } from './actions'
 import { createClient } from '@/utils/supabase/client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -110,11 +111,6 @@ export default function LoginForm() {
           Never argue about whose turn it is to wash the kettle again.
         </p>
 
-import { loginWithGoogle } from './actions'
-
-// ... in the component (imports added to the top)
-
-// inside the component:
         {/* Login Form Box */}
         <div className="w-full">
           <form action={loginWithGoogle}>
