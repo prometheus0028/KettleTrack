@@ -32,6 +32,7 @@ export function Navigation() {
               <Link 
                 key={item.href} 
                 href={item.href} 
+                prefetch={true}
                 className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                   active 
                     ? 'text-[#1cc29f] bg-[var(--secondary)]' 
@@ -47,14 +48,15 @@ export function Navigation() {
       </aside>
 
       {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[var(--background)] border-t border-[var(--border)] z-50 flex items-center justify-around h-[72px] pb-safe">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[var(--background)] border-t border-[var(--border)] z-50 flex items-center justify-around min-h-[72px] pb-[env(safe-area-inset-bottom)]">
         {navItems.map(item => {
           const active = isActive(item.href)
           return (
             <Link 
               key={item.href} 
               href={item.href} 
-              className={`flex flex-col items-center justify-center w-full h-full relative ${
+              prefetch={true}
+              className={`flex flex-col items-center justify-center w-full h-full relative py-2 ${
                 active ? 'text-[#1cc29f]' : 'text-[var(--muted-foreground)] hover:text-[var(--foreground)]'
               }`}
             >

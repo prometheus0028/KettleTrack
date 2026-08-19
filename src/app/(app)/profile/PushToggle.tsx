@@ -59,9 +59,15 @@ export function PushToggle({ user }: { user: any }) {
           return
         }
 
+        if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
+          alert('Push notifications are not configured on this server (Missing VAPID key).')
+          setLoading(false)
+          return
+        }
+
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!)
+          applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY)
         })
 
         await fetch('/api/push', {
@@ -71,8 +77,9 @@ export function PushToggle({ user }: { user: any }) {
         })
         setIsSubscribed(true)
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error('Error toggling push subscription', e)
+      alert(`Error toggling push: ${e.message}`)
     } finally {
       setLoading(false)
     }
