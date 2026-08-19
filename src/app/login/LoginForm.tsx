@@ -15,6 +15,20 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState(errorParam ? `Error: ${errorParam}. ${msgParam ? decodeURIComponent(msgParam) : 'Authentication failed.'}` : '')
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash
+      if (hash && hash.includes('error=')) {
+        const params = new URLSearchParams(hash.substring(1))
+        const err = params.get('error')
+        const errDesc = params.get('error_description')
+        if (err) {
+          setMessage(`Supabase Error: ${err}. ${errDesc ? decodeURIComponent(errDesc.replace(/\+/g, ' ')) : ''}`)
+        }
+      }
+    }
+  }, [])
+
   const handleGoogleLogin = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
