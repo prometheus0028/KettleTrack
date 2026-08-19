@@ -28,7 +28,8 @@ export async function GET(request: Request) {
           }
         })
         
-        return NextResponse.redirect(`${origin}/`)
+        // Use a cache-busting query param to bypass Safari BFCache and Next.js Client Router Cache
+        return NextResponse.redirect(`${origin}/?t=${Date.now()}`)
       } catch (dbError: any) {
         return NextResponse.redirect(`${origin}/login?error=db-failed&msg=${encodeURIComponent(dbError.message)}`)
       }
