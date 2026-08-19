@@ -1,6 +1,7 @@
 import { prisma } from '@/utils/prisma'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import { TransitionLink } from '@/components/TransitionLink'
 import Link from 'next/link'
 import { Search } from 'lucide-react'
 import { createRoom, joinRoom } from '@/app/actions'
@@ -195,9 +196,9 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
                 </div>
                 
                 <div className="space-y-3">
-                  <Link 
+                  <TransitionLink 
                     href="?action=create" 
-                    className="group block bg-[var(--card)] hover:bg-[var(--secondary)]/40 border border-[var(--border)] hover:border-[#1cc29f]/40 p-5 rounded-2xl transition-all hover:shadow-md hover:shadow-[#1cc29f]/5 hover:-translate-y-0.5"
+                    className="relative group block bg-[var(--card)] hover:bg-[var(--secondary)]/40 border border-[var(--border)] hover:border-[#1cc29f]/40 p-5 rounded-2xl transition-all hover:shadow-md hover:shadow-[#1cc29f]/5 hover:-translate-y-0.5"
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-full bg-[#1cc29f]/10 text-[#1cc29f] flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:bg-[#1cc29f] group-hover:text-white transition-all duration-300">
@@ -208,11 +209,11 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
                         <p className="text-[13px] text-[var(--muted-foreground)]">Start tracking together</p>
                       </div>
                     </div>
-                  </Link>
+                  </TransitionLink>
 
-                  <Link 
+                  <TransitionLink 
                     href="?action=join" 
-                    className="group block bg-[var(--card)] hover:bg-[var(--secondary)]/40 border border-[var(--border)] hover:border-[#1cc29f]/40 p-5 rounded-2xl transition-all hover:shadow-md hover:shadow-[#1cc29f]/5 hover:-translate-y-0.5"
+                    className="relative group block bg-[var(--card)] hover:bg-[var(--secondary)]/40 border border-[var(--border)] hover:border-[#1cc29f]/40 p-5 rounded-2xl transition-all hover:shadow-md hover:shadow-[#1cc29f]/5 hover:-translate-y-0.5"
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-full bg-[#1cc29f]/10 text-[#1cc29f] flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:bg-[#1cc29f] group-hover:text-white transition-all duration-300">
@@ -223,7 +224,7 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
                         <p className="text-[13px] text-[var(--muted-foreground)]">Use a link or room code</p>
                       </div>
                     </div>
-                  </Link>
+                  </TransitionLink>
                 </div>
               </div>
             )}
