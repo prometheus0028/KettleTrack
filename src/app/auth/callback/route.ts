@@ -12,24 +12,30 @@ export async function GET(request: Request) {
     
     if (!error && session?.user) {
       const { user } = session
-      // Sync user to Prisma
-      await prisma.user.upsert({
-        where: { email: user.email },
-        update: {
-          name: user.user_metadata?.full_name,
-          avatarUrl: user.user_metadata?.avatar_url,
-        },
-        create: {
-          id: user.id, // Keep Supabase user ID and Prisma ID in sync
-          email: user.email!,
-          name: user.user_metadata?.full_name,
-          avatarUrl: user.user_metadata?.avatar_url,
-        }
-      })
-      
-      return NextResponse.redirect(`${origin}/`)
+      try {
+        // Sync user to Prisma
+        await prisma.user.upsert({
+          where: { email: user.email },
+          update: {
+            name: user.user_metadata?.full_name,
+            avatarUrl: user.user_metadata?.avatar_url,
+          },
+          create: {
+            id: user.id, // Keep Supabase user ID and Prisma ID in sync
+            email: user.email!,
+            name: user.user_metadata?.full_name,
+            avatarUrl: user.user_metadata?.avatar_url,
+          }
+        })
+        
+        return NextResponse.redirect(`${origin}/`)
+      } catch (dbError: any) {
+        return NextResponse.redirect(`${origin}/login?error=db-failed&msg=${encodeURIComponent(dbError.message)}`)
+      }
+    } else {
+      return NextResponse.redirect(`${origin}/login?error=auth-failed&msg=${encodeURIComponent(error?.message || 'Unknown error')}`)
     }
   }
 
-  return NextResponse.redirect(`${origin}/login?error=auth-failed`)
+  return NextResponse.redirect(`${origin}/login?error=no-code`)
 }

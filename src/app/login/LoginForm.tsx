@@ -3,12 +3,17 @@
 import { createClient } from '@/utils/supabase/client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 
 export default function LoginForm() {
   const supabase = createClient()
+  const searchParams = useSearchParams()
+  const errorParam = searchParams.get('error')
+  const msgParam = searchParams.get('msg')
+  
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState('')
+  const [message, setMessage] = useState(errorParam ? `Error: ${errorParam}. ${msgParam ? decodeURIComponent(msgParam) : 'Authentication failed.'}` : '')
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -23,12 +28,15 @@ export default function LoginForm() {
   }, [supabase.auth])
 
   const handleGoogleLogin = async () => {
-    await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
     })
+    if (error) {
+      setMessage(`OAuth Error: ${error.message}`)
+    }
   }
 
   const sanitizeEmail = (rawEmail: string) => {

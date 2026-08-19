@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import LoginForm from './LoginForm'
+import { Suspense } from 'react'
 
 export default async function LoginPage() {
   const supabase = await createClient()
@@ -10,5 +11,9 @@ export default async function LoginPage() {
     redirect('/')
   }
 
-  return <LoginForm />
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginForm />
+    </Suspense>
+  )
 }
