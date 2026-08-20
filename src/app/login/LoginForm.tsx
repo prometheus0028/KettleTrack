@@ -62,7 +62,7 @@ export default function LoginForm() {
       if (!cleanEmail || !cleanEmail.includes('@')) {
         throw new Error('Please enter a valid email address.')
       }
-      if (password.length < 6) {
+      if (mode !== 'reset_password' && password.length < 6) {
         throw new Error('Password must be at least 6 characters.')
       }
 
