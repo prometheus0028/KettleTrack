@@ -203,7 +203,7 @@ export default function LoginForm() {
               </div>
               
               {mode === 'login' && (
-                <div className="relative flex flex-col gap-2">
+                <div className="relative">
                   <input
                     type="password"
                     placeholder="Enter a password (min 6 characters)"
@@ -213,14 +213,6 @@ export default function LoginForm() {
                     required
                     minLength={6}
                   />
-                  <Link
-                    href="/reset-password"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[12px] text-right text-[var(--muted-foreground)] hover:text-[#1cc29f] transition-colors"
-                  >
-                    Forgot password?
-                  </Link>
                 </div>
               )}
 
