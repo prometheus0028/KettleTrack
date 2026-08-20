@@ -7,12 +7,14 @@ export function SubmitButton({
   defaultText,
   pendingText,
   successText,
-  className
+  className,
+  icon
 }: {
   defaultText: string
   pendingText?: string
   successText?: string
   className?: string
+  icon?: React.ReactNode
 }) {
   const { pending } = useFormStatus()
   const [showSuccess, setShowSuccess] = useState(false)
@@ -47,7 +49,10 @@ export function SubmitButton({
           {successText}
         </>
       ) : (
-        defaultText
+        <>
+          {icon}
+          {defaultText}
+        </>
       )}
     </button>
   )

@@ -1,6 +1,7 @@
 import { prisma } from '@/utils/prisma'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import { SubmitButton } from '@/components/SubmitButton'
 import { updateProfile, logOut } from './actions'
 import { LogOut, Mail } from 'lucide-react'
 import { ProfileClientView } from './ProfileClientView'
@@ -105,10 +106,12 @@ export default async function ProfilePage() {
 
       <div className="px-4">
         <form action={logOut}>
-          <button suppressHydrationWarning className="w-full bg-[var(--card)] border border-[var(--border)] text-[#ff652f] py-3.5 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-[var(--secondary)] transition-colors">
-            <LogOut className="w-5 h-5" />
-            Log out
-          </button>
+          <SubmitButton
+            defaultText="Log out"
+            pendingText="Logging out..."
+            icon={<LogOut className="w-5 h-5" />}
+            className="w-full bg-[var(--card)] border border-[var(--border)] text-[#ff652f] py-3.5 rounded-xl font-semibold hover:bg-[var(--secondary)] transition-colors flex items-center justify-center gap-2"
+          />
         </form>
 
         <div className="mt-8 pt-8 border-t border-[var(--border)] text-center text-[12px] text-[var(--muted-foreground)]">

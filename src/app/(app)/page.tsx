@@ -2,6 +2,7 @@ import { prisma } from '@/utils/prisma'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { SubmitButton } from '@/components/SubmitButton'
+import { CancelButton } from '@/components/CancelButton'
 import Link from 'next/link'
 import { Search } from 'lucide-react'
 import { createRoom, joinRoom } from '@/app/actions'
@@ -14,9 +15,6 @@ import { Suspense } from 'react'
 export default async function GroupsPage({ searchParams }: { searchParams: Promise<{ filter?: string, action?: string, q?: string }> }) {
   const { filter, action, q } = await searchParams
   const currentFilter = filter || 'none'
-  
-  // Enforce minimum load time for the kettle animation
-  await new Promise(resolve => setTimeout(resolve, 1500))
 
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
@@ -233,7 +231,7 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
             
             {hasRooms && (
               <div className="mt-8 text-center">
-                <Link href="/" className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] text-[14px] font-medium transition-colors">Cancel</Link>
+                <CancelButton />
               </div>
             )}
           </div>
