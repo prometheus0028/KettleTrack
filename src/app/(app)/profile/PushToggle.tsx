@@ -40,26 +40,33 @@ export function PushToggle({ user }: { user: any }) {
   }
 
   const subscribeButtonOnClick = async () => {
+    const originalState = isSubscribed
+    // Optimistic UI update if we already have permission or are unsubscribing
+    if (Notification.permission === 'granted' || originalState) {
+      setIsSubscribed(!originalState)
+    }
+    
     setLoading(true)
     try {
       const registration = await navigator.serviceWorker.ready
       let subscription = await registration.pushManager.getSubscription()
 
-      if (isSubscribed && subscription) {
+      if (originalState && subscription) {
         // Unsubscribe
         await subscription.unsubscribe()
-        // Here we could also call an API to delete it from DB, but we'll let it fail silently when pushing
         setIsSubscribed(false)
       } else {
         // Subscribe
         const permission = await Notification.requestPermission()
         if (permission !== 'granted') {
+          setIsSubscribed(originalState) // Revert
           alert('Notification permission denied. Please enable them in your browser settings.')
           setLoading(false)
           return
         }
 
         if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
+          setIsSubscribed(originalState) // Revert
           alert('Push notifications are not configured on this server (Missing VAPID key).')
           setLoading(false)
           return
@@ -79,6 +86,7 @@ export function PushToggle({ user }: { user: any }) {
       }
     } catch (e: any) {
       console.error('Error toggling push subscription', e)
+      setIsSubscribed(originalState) // Revert on error
       alert(`Error toggling push: ${e.message}`)
     } finally {
       setLoading(false)
