@@ -3,6 +3,7 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { SubmitButton } from '@/components/SubmitButton'
 import { CancelButton } from '@/components/CancelButton'
+import { ActionBox } from '@/components/ActionBox'
 import Link from 'next/link'
 import { Search } from 'lucide-react'
 import { createRoom, joinRoom } from '@/app/actions'
@@ -196,35 +197,19 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
                 </div>
                 
                 <div className="space-y-3">
-                  <Link 
+                  <ActionBox 
                     href="?action=create" 
-                    className="relative group block bg-[var(--card)] hover:bg-[var(--secondary)]/40 border border-[var(--border)] hover:border-[#1cc29f]/40 p-5 rounded-2xl transition-all hover:shadow-md hover:shadow-[#1cc29f]/5 hover:-translate-y-0.5"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-full bg-[#1cc29f]/10 text-[#1cc29f] flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:bg-[#1cc29f] group-hover:text-white transition-all duration-300">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-[16px] font-semibold text-[var(--foreground)] mb-0.5">Create a new room</h3>
-                        <p className="text-[13px] text-[var(--muted-foreground)]">Start tracking together</p>
-                      </div>
-                    </div>
-                  </Link>
+                    title="Create a new room" 
+                    description="Start tracking together"
+                    icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>}
+                  />
 
-                  <Link 
+                  <ActionBox 
                     href="?action=join" 
-                    className="relative group block bg-[var(--card)] hover:bg-[var(--secondary)]/40 border border-[var(--border)] hover:border-[#1cc29f]/40 p-5 rounded-2xl transition-all hover:shadow-md hover:shadow-[#1cc29f]/5 hover:-translate-y-0.5"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-full bg-[#1cc29f]/10 text-[#1cc29f] flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:bg-[#1cc29f] group-hover:text-white transition-all duration-300">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-[16px] font-semibold text-[var(--foreground)] mb-0.5">Join an existing room</h3>
-                        <p className="text-[13px] text-[var(--muted-foreground)]">Use a link or room code</p>
-                      </div>
-                    </div>
-                  </Link>
+                    title="Join an existing room" 
+                    description="Use a link or room code"
+                    icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>}
+                  />
                 </div>
               </div>
             )}

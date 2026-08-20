@@ -98,6 +98,7 @@ export function ProfileClientView({ user, updateProfileAction }: { user: any, up
 
             <SubmitButton 
               defaultText="Save Changes"
+              pendingText="Saving..."
               successText="Saved!"
               className="w-full bg-[#1cc29f] hover:bg-[#159e80] active:scale-[0.98] text-white py-3 rounded-lg text-[15px] font-semibold transition-all mt-8"
             />
