@@ -48,7 +48,7 @@ export function Navigation() {
       </aside>
 
       {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[var(--background)] border-t border-[var(--border)] z-50 flex items-center justify-around min-h-[72px] pb-[env(safe-area-inset-bottom)]">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[var(--background)] border-t border-[var(--border)] z-50 flex items-center justify-around min-h-[72px] pt-1 pb-[calc(env(safe-area-inset-bottom)+8px)]">
         {navItems.map(item => {
           const active = isActive(item.href)
           return (
