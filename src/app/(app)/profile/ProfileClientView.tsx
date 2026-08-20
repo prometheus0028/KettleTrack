@@ -17,7 +17,13 @@ const PIXEL_AVATARS = [
   'https://api.dicebear.com/9.x/pixel-art/svg?seed=Liam',
   'https://api.dicebear.com/9.x/pixel-art/svg?seed=Noah',
   'https://api.dicebear.com/9.x/pixel-art/svg?seed=Sophia',
-  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Emma'
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Emma',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=John&skinColor=fcd7b8',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Alex&skinColor=fcd7b8',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Bob&skinColor=fcd7b8',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=David&skinColor=fcd7b8',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Jamal&skinColor=7f5a58',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Marcus&skinColor=7f5a58'
 ]
 
 export function ProfileClientView({ user, updateProfileAction }: { user: any, updateProfileAction: any }) {
