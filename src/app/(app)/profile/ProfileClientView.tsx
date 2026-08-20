@@ -6,24 +6,36 @@ import { PushToggle } from './PushToggle'
 import { SubmitButton } from '@/components/SubmitButton'
 
 const PIXEL_AVATARS = [
-  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Felix',
-  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Aneka',
-  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Jasper',
-  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Brian',
-  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Aiden',
-  'https://api.dicebear.com/9.x/pixel-art/svg?seed=King',
-  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Oliver',
-  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Jack',
-  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Liam',
-  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Noah',
-  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Sophia',
-  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Emma',
+  // Men (White)
   'https://api.dicebear.com/9.x/pixel-art/svg?seed=John&skinColor=fcd7b8',
-  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Alex&skinColor=fcd7b8',
-  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Bob&skinColor=fcd7b8',
   'https://api.dicebear.com/9.x/pixel-art/svg?seed=David&skinColor=fcd7b8',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Michael&skinColor=fcd7b8',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=James&skinColor=fcd7b8',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Robert&skinColor=fcd7b8',
+  // Men (Tanned)
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Luis&skinColor=e8b991',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Carlos&skinColor=e8b991',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Mateo&skinColor=e8b991',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Diego&skinColor=e8b991',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Juan&skinColor=e8b991',
+  // Men (Black)
   'https://api.dicebear.com/9.x/pixel-art/svg?seed=Jamal&skinColor=7f5a58',
-  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Marcus&skinColor=7f5a58'
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Marcus&skinColor=7f5a58',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Malik&skinColor=7f5a58',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Tyrone&skinColor=7f5a58',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Andre&skinColor=7f5a58',
+  // Women (White)
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Emma&skinColor=fcd7b8',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Sarah&skinColor=fcd7b8',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Emily&skinColor=fcd7b8',
+  // Women (Tanned)
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Maria&skinColor=e8b991',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Sofia&skinColor=e8b991',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Isabella&skinColor=e8b991',
+  // Women (Black)
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Aaliyah&skinColor=7f5a58',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Chloe&skinColor=7f5a58',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Jasmine&skinColor=7f5a58'
 ]
 
 export function ProfileClientView({ user, updateProfileAction }: { user: any, updateProfileAction: any }) {
