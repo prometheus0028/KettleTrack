@@ -76,17 +76,12 @@ export default function LoginForm() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-[var(--background)] p-4 font-sans selection:bg-[#1cc29f] selection:text-white">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-[#1cc29f] opacity-[0.03] blur-[100px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-[#1cc29f] opacity-[0.03] blur-[100px]" />
-      </div>
+
 
       <div className="w-full max-w-[340px] flex flex-col items-center relative z-10 animate-fade-in">
         
         {/* Static Kettle Logo */}
         <div className="w-24 h-24 mb-6 relative flex items-center justify-center">
-          <div className="absolute inset-0 bg-[#1cc29f] opacity-10 rounded-full blur-xl"></div>
           
           <div className="relative w-16 h-16">
             <svg 
