@@ -19,7 +19,7 @@ export async function createRoom(formData: FormData) {
 
   const joinCode = Math.random().toString(36).substring(2, 8).toUpperCase()
 
-  await prisma.room.create({
+  const newRoom = await prisma.room.create({
     data: {
       name,
       ownerId: userId,
@@ -34,7 +34,7 @@ export async function createRoom(formData: FormData) {
     }
   })
 
-  redirect('/')
+  redirect(`/room/${newRoom.id}`)
 }
 
 export async function joinRoom(formData: FormData) {
@@ -74,7 +74,7 @@ export async function joinRoom(formData: FormData) {
     })
   }
 
-  redirect('/')
+  redirect(`/room/${room.id}`)
 }
 
 export async function logOut() {
