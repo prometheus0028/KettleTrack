@@ -24,6 +24,14 @@ export async function updateProfile(formData: FormData) {
     }
   })
 
+  // Sync back to Supabase metadata so future logins don't overwrite it with old Google data
+  await supabase.auth.updateUser({
+    data: {
+      name: name || null,
+      avatar_url: avatarUrl || null
+    }
+  })
+
   revalidatePath('/', 'layout')
 }
 
