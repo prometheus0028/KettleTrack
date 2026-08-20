@@ -198,7 +198,7 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
                 </div>
                 
                 <div className="space-y-3">
-                  <TransitionLink 
+                  <Link 
                     href="?action=create" 
                     className="relative group block bg-[var(--card)] hover:bg-[var(--secondary)]/40 border border-[var(--border)] hover:border-[#1cc29f]/40 p-5 rounded-2xl transition-all hover:shadow-md hover:shadow-[#1cc29f]/5 hover:-translate-y-0.5"
                   >
@@ -211,9 +211,9 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
                         <p className="text-[13px] text-[var(--muted-foreground)]">Start tracking together</p>
                       </div>
                     </div>
-                  </TransitionLink>
+                  </Link>
 
-                  <TransitionLink 
+                  <Link 
                     href="?action=join" 
                     className="relative group block bg-[var(--card)] hover:bg-[var(--secondary)]/40 border border-[var(--border)] hover:border-[#1cc29f]/40 p-5 rounded-2xl transition-all hover:shadow-md hover:shadow-[#1cc29f]/5 hover:-translate-y-0.5"
                   >
@@ -226,7 +226,7 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
                         <p className="text-[13px] text-[var(--muted-foreground)]">Use a link or room code</p>
                       </div>
                     </div>
-                  </TransitionLink>
+                  </Link>
                 </div>
               </div>
             )}

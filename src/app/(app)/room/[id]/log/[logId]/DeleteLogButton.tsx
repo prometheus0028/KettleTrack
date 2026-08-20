@@ -5,7 +5,6 @@ import { SubmitButton } from '@/components/SubmitButton'
 
 export function DeleteLogButton() {
   const [showConfirm, setShowConfirm] = useState(false)
-  const { pending } = useFormStatus()
 
   return (
     <>
