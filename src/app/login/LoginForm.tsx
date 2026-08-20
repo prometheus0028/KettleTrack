@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { syncUser } from '@/app/actions'
 
-type AuthMode = 'initial' | 'login' | 'signup'
+type AuthMode = 'initial' | 'login' | 'signup' | 'reset_password'
 
 export default function LoginForm() {
   const supabase = createClient()
@@ -111,6 +111,13 @@ export default function LoginForm() {
         
         // If login is successful, redirect to home
         window.location.href = '/'
+      } else if (mode === 'reset_password') {
+        const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+          redirectTo: `${window.location.origin}/auth/callback?next=/update-password`,
+        })
+        if (error) throw error
+        setMessage('Check your email for the password reset link!')
+        return // don't clear loading state if we want them to wait, but let's clear it
       }
     } catch (err: any) {
       setMessage(err.message || 'An error occurred during authentication.')
@@ -202,17 +209,28 @@ export default function LoginForm() {
                 />
               </div>
               
-              <div className="relative">
-                <input
-                  type="password"
-                  placeholder="Enter a password (min 6 characters)"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)] rounded-xl py-3.5 px-4 text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1cc29f] focus:border-transparent transition-all placeholder:text-[var(--muted-foreground)]"
-                  required
-                  minLength={6}
-                />
-              </div>
+              {mode !== 'reset_password' && (
+                <div className="relative flex flex-col gap-2">
+                  <input
+                    type="password"
+                    placeholder="Enter a password (min 6 characters)"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)] rounded-xl py-3.5 px-4 text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1cc29f] focus:border-transparent transition-all placeholder:text-[var(--muted-foreground)]"
+                    required
+                    minLength={6}
+                  />
+                  {mode === 'login' && (
+                    <button
+                      type="button"
+                      onClick={() => { setMode('reset_password'); setMessage(''); }}
+                      className="text-[12px] text-right text-[var(--muted-foreground)] hover:text-[#1cc29f] transition-colors"
+                    >
+                      Forgot password?
+                    </button>
+                  )}
+                </div>
+              )}
               
               <button
                 type="submit"
@@ -222,7 +240,7 @@ export default function LoginForm() {
                 {loading ? (
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                 ) : (
-                  mode === 'login' ? 'Log In' : 'Sign Up'
+                  mode === 'login' ? 'Log In' : mode === 'signup' ? 'Sign Up' : 'Send Reset Link'
                 )}
               </button>
               
@@ -234,6 +252,14 @@ export default function LoginForm() {
                     className="text-[13px] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
                   >
                     Don't have an account? Sign up
+                  </button>
+                ) : mode === 'reset_password' ? (
+                  <button
+                    type="button"
+                    onClick={() => { setMode('login'); setMessage(''); }}
+                    className="text-[13px] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                  >
+                    Back to login
                   </button>
                 ) : (
                   <button

@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
+  const next = searchParams.get('next') ?? '/'
   
   if (code) {
     const supabase = await createClient()
@@ -18,13 +19,13 @@ export async function GET(request: Request) {
         await prisma.user.upsert({
           where: { email: user.email },
           update: {
-            name: user.user_metadata?.full_name,
+            name: user.user_metadata?.name || user.user_metadata?.full_name,
             avatarUrl: user.user_metadata?.avatar_url,
           },
           create: {
             id: user.id, // Keep Supabase user ID and Prisma ID in sync
             email: user.email!,
-            name: user.user_metadata?.full_name,
+            name: user.user_metadata?.name || user.user_metadata?.full_name,
             avatarUrl: user.user_metadata?.avatar_url,
           }
         })
@@ -33,7 +34,10 @@ export async function GET(request: Request) {
         revalidatePath('/', 'layout')
         
         // Use a cache-busting query param to bypass Safari BFCache and Next.js Client Router Cache
-        return NextResponse.redirect(`${origin}/?t=${Date.now()}`)
+        // Append cache-busting param to the `next` URL
+        const nextUrl = new URL(next.startsWith('http') ? next : `${origin}${next}`)
+        nextUrl.searchParams.set('t', Date.now().toString())
+        return NextResponse.redirect(nextUrl.toString())
       } catch (dbError: any) {
         return NextResponse.redirect(`${origin}/login?error=db-failed&msg=${encodeURIComponent(dbError.message)}`)
       }
