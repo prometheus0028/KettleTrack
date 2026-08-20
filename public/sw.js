@@ -1,23 +1,27 @@
-const CACHE_NAME = 'kettletrack-v1';
-
-const urlsToCache = [
-  '/',
-  '/login',
-  '/manifest.webmanifest'
-];
+const CACHE_NAME = 'kettletrack-v2';
 
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(urlsToCache))
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
   );
 });
 
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => response || fetch(event.request))
-  );
+  // We don't cache HTML requests because it breaks Next.js dynamic routing and auth.
+  // This service worker is purely for Web Push Notifications.
+  return;
 });
 
 self.addEventListener('push', function (event) {
