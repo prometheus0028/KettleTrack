@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import { syncUser } from '@/app/actions'
 
 type AuthMode = 'initial' | 'login' | 'signup'
 
@@ -87,6 +88,9 @@ export default function LoginForm() {
           throw error
         }
         
+        // Sync Prisma user
+        await syncUser()
+        
         // If sign up is successful, redirect to home
         window.location.href = '/'
       } else if (mode === 'login') {
@@ -101,6 +105,9 @@ export default function LoginForm() {
           }
           throw error
         }
+        
+        // Sync Prisma user
+        await syncUser()
         
         // If login is successful, redirect to home
         window.location.href = '/'

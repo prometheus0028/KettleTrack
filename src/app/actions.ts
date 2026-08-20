@@ -86,3 +86,25 @@ export async function logOut() {
   revalidatePath('/', 'layout')
   redirect('/login')
 }
+
+export async function syncUser() {
+  const supabase = await createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  
+  if (session?.user) {
+    const { user } = session
+    await prisma.user.upsert({
+      where: { email: user.email },
+      update: {
+        name: user.user_metadata?.name || user.user_metadata?.full_name,
+        avatarUrl: user.user_metadata?.avatar_url,
+      },
+      create: {
+        id: user.id,
+        email: user.email!,
+        name: user.user_metadata?.name || user.user_metadata?.full_name,
+        avatarUrl: user.user_metadata?.avatar_url,
+      }
+    })
+  }
+}
