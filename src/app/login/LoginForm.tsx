@@ -13,6 +13,8 @@ export default function LoginForm() {
   
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showOtp, setShowOtp] = useState(false)
+  const [otp, setOtp] = useState('')
   const [message, setMessage] = useState(errorParam ? `Error: ${errorParam}. ${msgParam ? decodeURIComponent(msgParam) : 'Authentication failed.'}` : '')
 
   useEffect(() => {
@@ -65,10 +67,32 @@ export default function LoginForm() {
 
       if (error) throw error
 
-      setMessage('Check your email for the login link!')
-      setEmail('')
+      setShowOtp(true)
+      setMessage('Check your email! You can either click the magic link or enter the 6-digit code below.')
     } catch (err: any) {
       setMessage(err.message || 'An error occurred during login.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setMessage('')
+
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email: sanitizeEmail(email),
+        token: otp,
+        type: 'email'
+      })
+
+      if (error) throw error
+
+      window.location.href = '/'
+    } catch (err: any) {
+      setMessage(err.message || 'Invalid code. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -123,30 +147,67 @@ export default function LoginForm() {
             <span className="bg-[var(--background)] px-3 text-[12px] font-medium text-[var(--muted-foreground)] absolute uppercase tracking-wider">or</span>
           </div>
 
-          <form onSubmit={handleEmailLogin} className="flex flex-col gap-4">
-            <div className="relative">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)] rounded-xl py-3.5 px-4 text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1cc29f] focus:border-transparent transition-all placeholder:text-[var(--muted-foreground)]"
-                required
-              />
-            </div>
-            
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-[#1cc29f] text-white rounded-xl py-3.5 px-4 font-semibold text-[15px] hover:bg-[#18a88a] active:scale-[0.98] transition-all disabled:opacity-70 disabled:active:scale-100 flex items-center justify-center"
-            >
-              {loading ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-              ) : (
-                'Continue with Email'
-              )}
-            </button>
-          </form>
+          {showOtp ? (
+            <form onSubmit={handleVerifyOtp} className="flex flex-col gap-4">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Enter 6-digit code"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  className="w-full bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)] rounded-xl py-3.5 px-4 text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1cc29f] focus:border-transparent transition-all placeholder:text-[var(--muted-foreground)] tracking-widest text-center font-bold"
+                  required
+                  autoFocus
+                  maxLength={6}
+                />
+              </div>
+              
+              <button
+                type="submit"
+                disabled={loading || otp.length < 6}
+                className="w-full bg-[#1cc29f] text-white rounded-xl py-3.5 px-4 font-semibold text-[15px] hover:bg-[#18a88a] active:scale-[0.98] transition-all disabled:opacity-70 disabled:active:scale-100 flex items-center justify-center"
+              >
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                ) : (
+                  'Verify Code'
+                )}
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => { setShowOtp(false); setMessage(''); setOtp(''); }}
+                className="text-[13px] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors mt-2"
+              >
+                Use a different email
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleEmailLogin} className="flex flex-col gap-4">
+              <div className="relative">
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)] rounded-xl py-3.5 px-4 text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1cc29f] focus:border-transparent transition-all placeholder:text-[var(--muted-foreground)]"
+                  required
+                />
+              </div>
+              
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-[#1cc29f] text-white rounded-xl py-3.5 px-4 font-semibold text-[15px] hover:bg-[#18a88a] active:scale-[0.98] transition-all disabled:opacity-70 disabled:active:scale-100 flex items-center justify-center"
+              >
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                ) : (
+                  'Continue with Email'
+                )}
+              </button>
+            </form>
+          )}
 
           {message && (
             <div className={`mt-6 p-4 rounded-xl text-[13px] text-center leading-relaxed font-medium animate-fade-in ${
