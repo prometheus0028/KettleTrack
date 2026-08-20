@@ -80,7 +80,12 @@ export default function LoginForm() {
           }
         })
         
-        if (error) throw error
+        if (error) {
+          if (error.message.includes('User already registered')) {
+            throw new Error('An account with this email already exists. If you originally signed up with Google, please use "Continue with Google".')
+          }
+          throw error
+        }
         
         // If sign up is successful, redirect to home
         window.location.href = '/'
@@ -90,7 +95,12 @@ export default function LoginForm() {
           password
         })
         
-        if (error) throw error
+        if (error) {
+          if (error.message.includes('Invalid login credentials')) {
+            throw new Error('Invalid email or password. If you originally signed up with Google, please click "Continue with Google".')
+          }
+          throw error
+        }
         
         // If login is successful, redirect to home
         window.location.href = '/'
