@@ -249,10 +249,10 @@ export default function LoginForm() {
           )}
 
           {message && (
-            <div className={`mt-6 p-4 rounded-xl text-[13px] text-center leading-relaxed font-medium animate-fade-in ${
-              message.includes('Error') || message.includes('failed')
-                ? 'bg-red-500/10 text-red-500' 
-                : 'bg-[#1cc29f]/10 text-[#1cc29f]'
+            <div className={`mt-6 text-[13px] text-center leading-relaxed font-medium animate-fade-in ${
+              message.includes('Error') || message.includes('failed') || message.includes('Invalid') || message.includes('already exists')
+                ? 'text-red-500' 
+                : 'text-[#1cc29f]'
             }`}>
               {message}
             </div>
