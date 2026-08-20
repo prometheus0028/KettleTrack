@@ -24,12 +24,12 @@ export async function updateProfile(formData: FormData) {
     }
   })
 
-  revalidatePath('/profile')
-  revalidatePath('/room/[id]', 'page')
+  revalidatePath('/', 'layout')
 }
 
 export async function logOut() {
   const supabase = await createClient()
   await supabase.auth.signOut()
+  revalidatePath('/', 'layout')
   redirect('/login')
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { prisma } from '@/utils/prisma'
+import { revalidatePath } from 'next/cache'
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
@@ -27,6 +28,9 @@ export async function GET(request: Request) {
             avatarUrl: user.user_metadata?.avatar_url,
           }
         })
+        
+        // Clear router cache globally on login
+        revalidatePath('/', 'layout')
         
         // Use a cache-busting query param to bypass Safari BFCache and Next.js Client Router Cache
         return NextResponse.redirect(`${origin}/?t=${Date.now()}`)

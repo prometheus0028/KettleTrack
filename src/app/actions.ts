@@ -3,6 +3,7 @@
 import { prisma } from '@/utils/prisma'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 
 async function getUserId() {
   const supabase = await createClient()
@@ -34,6 +35,7 @@ export async function createRoom(formData: FormData) {
     }
   })
 
+  revalidatePath('/', 'layout')
   redirect(`/room/${newRoom.id}`)
 }
 
@@ -74,11 +76,13 @@ export async function joinRoom(formData: FormData) {
     })
   }
 
+  revalidatePath('/', 'layout')
   redirect(`/room/${room.id}`)
 }
 
 export async function logOut() {
   const supabase = await createClient()
   await supabase.auth.signOut()
+  revalidatePath('/', 'layout')
   redirect('/login')
 }

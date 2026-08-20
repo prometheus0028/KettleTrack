@@ -234,7 +234,7 @@ export async function logWash(formData: FormData) {
       }
     }
 
-    revalidatePath(`/room/${roomId}`)
+    revalidatePath('/', 'layout')
   } catch (error: any) {
     debugLog('logWash error:', error?.message || error)
     console.error(error)
@@ -262,9 +262,7 @@ export async function updateRoomName(formData: FormData) {
       data: { name }
     })
 
-    revalidatePath(`/room/${roomId}`)
-    revalidatePath(`/room/${roomId}/settings`)
-    revalidatePath('/')
+    revalidatePath('/', 'layout')
   } catch (error) {
     console.error(error)
   }
@@ -306,8 +304,7 @@ export async function reorderMember(roomId: string, memberId: string, direction:
       })
     ])
 
-    revalidatePath(`/room/${roomId}`)
-    revalidatePath(`/room/${roomId}/settings`)
+    revalidatePath('/', 'layout')
   } catch (error) {
     console.error(error)
   }
@@ -343,8 +340,7 @@ export async function updateMemberOrder(roomId: string, memberIds: string[]) {
       )
     )
 
-    revalidatePath(`/room/${roomId}`)
-    revalidatePath(`/room/${roomId}/settings`)
+    revalidatePath('/', 'layout')
   } catch (error) {
     console.error(error)
   }
@@ -373,7 +369,7 @@ export async function deleteRoom(formData: FormData) {
       prisma.room.delete({ where: { id: roomId } })
     ])
 
-    revalidatePath('/')
+    revalidatePath('/', 'layout')
   } catch (error) {
     console.error(error)
   }
@@ -404,7 +400,7 @@ export async function toggleMemberActive(formData: FormData) {
     }
   })
 
-  revalidatePath(`/room/${roomId}`)
+  revalidatePath('/', 'layout')
 }
 
 export async function deleteWashLog(formData: FormData) {
@@ -423,8 +419,7 @@ export async function deleteWashLog(formData: FormData) {
       prisma.washLog.delete({ where: { id: logId } })
     ])
 
-    revalidatePath(`/room/${roomId}`)
-    revalidatePath('/activity')
+    revalidatePath('/', 'layout')
   } catch (error) {
     console.error(error)
   }
@@ -489,8 +484,7 @@ export async function updateWashLog(formData: FormData) {
       }
     })
 
-    revalidatePath(`/room/${roomId}`)
-    revalidatePath('/activity')
+    revalidatePath('/', 'layout')
   } catch (error) {
     console.error(error)
   }
@@ -536,7 +530,7 @@ export async function leaveRoom(formData: FormData) {
 
     await prisma.roomMember.delete({ where: { id: memberId } })
 
-    revalidatePath('/')
+    revalidatePath('/', 'layout')
   } catch (error) {
     console.error(error)
   }
@@ -610,7 +604,7 @@ export async function nudgeUser(targetUserId: string, roomId: string) {
       }
     }
 
-    revalidatePath(`/room/${roomId}`)
+    revalidatePath('/', 'layout')
   } catch (error) {
     console.error(error)
   }
