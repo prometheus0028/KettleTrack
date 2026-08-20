@@ -277,6 +277,7 @@ export async function reorderMember(roomId: string, memberId: string, direction:
   try {
     const room = await prisma.room.findUnique({ where: { id: roomId } })
     if (!room) return
+    if (room.queueLocked) return
 
     const members = await prisma.roomMember.findMany({
       where: { roomId },
@@ -319,6 +320,7 @@ export async function updateMemberOrder(roomId: string, memberIds: string[]) {
   try {
     const room = await prisma.room.findUnique({ where: { id: roomId } })
     if (!room) return
+    if (room.queueLocked) return
 
     // Ensure all members belong to the room
     const members = await prisma.roomMember.findMany({

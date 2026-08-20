@@ -13,8 +13,8 @@ import { ThemeToggle } from '@/components/ThemeToggle'
 
 import { Suspense } from 'react'
 
-export default async function GroupsPage({ searchParams }: { searchParams: Promise<{ filter?: string, action?: string, q?: string }> }) {
-  const { filter, action, q } = await searchParams
+export default async function GroupsPage({ searchParams }: { searchParams: Promise<{ filter?: string, action?: string, q?: string, error?: string, max?: string }> }) {
+  const { filter, action, q, error, max } = await searchParams
   const currentFilter = filter || 'none'
 
   const supabase = await createClient()
@@ -153,6 +153,18 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
                       autoFocus
                     />
                   </div>
+                  <div>
+                    <label className="text-[13px] font-semibold text-[var(--muted-foreground)] mb-2 block uppercase tracking-wider">Max Members</label>
+                    <input 
+                      type="number"
+                      name="maxMembers" 
+                      defaultValue={4}
+                      min={1}
+                      max={20}
+                      className="w-full bg-input-bg border-2 border-[var(--border)] rounded-xl p-4 text-[16px] focus:outline-none focus:border-[var(--foreground)] text-[var(--foreground)] transition-all font-medium"
+                      required
+                    />
+                  </div>
                   <SubmitButton 
                     defaultText="Create Room"
                     className="w-full bg-[#1cc29f] text-white py-4 rounded-xl font-semibold text-[16px] shadow-sm shadow-[#1cc29f]/20 hover:bg-[#159e80] hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0 transition-all flex items-center justify-center gap-2"
@@ -174,6 +186,9 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
 
                 <form action={joinRoom} className="space-y-6">
                   <div>
+                    {error === 'full' && (
+                      <p className="text-[#ff652f] text-[14px] font-medium mb-4">Sorry, this group has reached its maximum capacity of {max || 'X'} members.</p>
+                    )}
                     <label className="text-[13px] font-semibold text-[var(--muted-foreground)] mb-2 block uppercase tracking-wider">Join Code or Invite Link</label>
                     <input 
                       name="joinCode" 

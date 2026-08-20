@@ -38,15 +38,17 @@ interface SortableMemberListProps {
   roomId: string
   initialMembers: Member[]
   currentUserId: string
+  disabled?: boolean
 }
 
-function SortableItem({ member, idx, roomId, isFirst, isLast, currentUserId }: { 
+function SortableItem({ member, idx, roomId, isFirst, isLast, currentUserId, disabled }: { 
   member: Member, 
   idx: number,
   roomId: string,
   isFirst: boolean,
   isLast: boolean,
-  currentUserId: string
+  currentUserId: string,
+  disabled?: boolean
 }) {
   const {
     attributes,
@@ -66,28 +68,32 @@ function SortableItem({ member, idx, roomId, isFirst, isLast, currentUserId }: {
   return (
     <div ref={setNodeRef} style={style} className={`flex items-center justify-between p-4 bg-[var(--card)] ${isDragging ? 'shadow-lg border-y border-[var(--border)] relative' : ''}`}>
       <div className="flex items-center gap-3 w-full">
-        <ReorderControls 
-          roomId={roomId} 
-          memberId={member.id} 
-          isFirst={isFirst} 
-          isLast={isLast} 
-        />
+        {!disabled && (
+          <ReorderControls 
+            roomId={roomId} 
+            memberId={member.id} 
+            isFirst={isFirst} 
+            isLast={isLast} 
+          />
+        )}
         
         {/* Drag Handle */}
-        <div 
-          className="cursor-grab active:cursor-grabbing p-1.5 -ml-1 text-[var(--muted-foreground)] hover:bg-[var(--secondary)] rounded-md touch-none"
-          {...attributes}
-          {...listeners}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="9" cy="12" r="1"></circle>
-            <circle cx="9" cy="5" r="1"></circle>
-            <circle cx="9" cy="19" r="1"></circle>
-            <circle cx="15" cy="12" r="1"></circle>
-            <circle cx="15" cy="5" r="1"></circle>
-            <circle cx="15" cy="19" r="1"></circle>
-          </svg>
-        </div>
+        {!disabled && (
+          <div 
+            className="cursor-grab active:cursor-grabbing p-1.5 -ml-1 text-[var(--muted-foreground)] hover:bg-[var(--secondary)] rounded-md touch-none"
+            {...attributes}
+            {...listeners}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="9" cy="12" r="1"></circle>
+              <circle cx="9" cy="5" r="1"></circle>
+              <circle cx="9" cy="19" r="1"></circle>
+              <circle cx="15" cy="12" r="1"></circle>
+              <circle cx="15" cy="5" r="1"></circle>
+              <circle cx="15" cy="19" r="1"></circle>
+            </svg>
+          </div>
+        )}
 
         <div className="w-6 h-6 rounded-full bg-[var(--secondary)] flex items-center justify-center text-[10px] font-bold text-[var(--muted-foreground)]">
           {idx + 1}
@@ -112,7 +118,7 @@ function SortableItem({ member, idx, roomId, isFirst, isLast, currentUserId }: {
   )
 }
 
-export function SortableMemberList({ roomId, initialMembers, currentUserId }: SortableMemberListProps) {
+export function SortableMemberList({ roomId, initialMembers, currentUserId, disabled }: SortableMemberListProps) {
   const [members, setMembers] = useState(initialMembers)
 
   useEffect(() => {
@@ -171,6 +177,7 @@ export function SortableMemberList({ roomId, initialMembers, currentUserId }: So
               isFirst={idx === 0}
               isLast={idx === members.length - 1}
               currentUserId={currentUserId}
+              disabled={disabled}
             />
           ))}
         </SortableContext>

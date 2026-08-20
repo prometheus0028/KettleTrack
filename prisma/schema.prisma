@@ -43,6 +43,8 @@ model Room {
   name      String
   ownerId   String
   joinCode  String   @unique
+  maxMembers  Int      @default(4)
+  queueLocked Boolean  @default(false)
   createdAt DateTime @default(now())
   members   RoomMember[]
   washLogs  WashLog[]

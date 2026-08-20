@@ -76,15 +76,36 @@ export default async function RoomSettingsPage({ params }: { params: Promise<{ i
 
         {/* Cycle Tracking */}
         <div>
-          <h2 className="text-[13px] font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-2">Cycle Tracking</h2>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-[13px] font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">Cycle Tracking</h2>
+            {isOwner && !room.queueLocked && (
+              <form action={async () => {
+                'use server'
+                const { prisma } = await import('@/utils/prisma')
+                const { revalidatePath } = await import('next/cache')
+                await prisma.room.update({ where: { id: room.id }, data: { queueLocked: true } })
+                revalidatePath(`/room/${room.id}/settings`)
+              }}>
+                <button type="submit" className="text-[12px] bg-[#1cc29f] text-white px-3 py-1.5 rounded-full font-medium hover:bg-[#159e80] active:scale-[0.98] transition-all">
+                  Lock Order
+                </button>
+              </form>
+            )}
+          </div>
+          
           <p className="text-[14px] text-[var(--foreground)] mb-4">
-            Manage the active rotation for washing the kettle. Drag and drop members to reorder them, or use the arrows.
+            {room.queueLocked 
+              ? "The washing order has been locked and cannot be changed." 
+              : isOwner 
+                ? "Manage the active rotation for washing the kettle. Drag and drop members to reorder them. You can lock the order when you're done." 
+                : "The active rotation for washing the kettle."}
           </p>
           
           <SortableMemberList 
             roomId={room.id}
             initialMembers={room.members}
             currentUserId={session.user.id}
+            disabled={room.queueLocked || !isOwner}
           />
         </div>
 
