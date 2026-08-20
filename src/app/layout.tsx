@@ -18,6 +18,16 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "KettleTrack",
   },
+  icons: {
+    icon: [
+      { url: '/api/icon?theme=light', media: '(prefers-color-scheme: light)' },
+      { url: '/api/icon?theme=dark', media: '(prefers-color-scheme: dark)' },
+    ],
+    apple: [
+      { url: '/api/apple-icon?theme=light', media: '(prefers-color-scheme: light)' },
+      { url: '/api/apple-icon?theme=dark', media: '(prefers-color-scheme: dark)' },
+    ]
+  }
 };
 
 export const viewport = {
