@@ -12,7 +12,6 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "KettleTrack",
   description: "Manage your kettle wash cycle",
-  manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
