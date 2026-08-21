@@ -36,8 +36,12 @@ export async function getOrCreateSubgroup(roomId: string, userIds: string[]) {
   })
 
   if (!subgroup) {
-    // Lazy creation: shuffle members so the initial queue order is random
-    const shuffledUserIds = [...userIds].sort(() => Math.random() - 0.5)
+    // Lazy creation: shuffle members so the initial queue order is random using Fisher-Yates
+    const shuffledUserIds = [...userIds]
+    for (let i = shuffledUserIds.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledUserIds[i], shuffledUserIds[j]] = [shuffledUserIds[j], shuffledUserIds[i]];
+    }
     
     subgroup = await prisma.subgroup.create({
       data: {

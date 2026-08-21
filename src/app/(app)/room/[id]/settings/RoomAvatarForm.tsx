@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { updateRoomAvatar } from '../actions'
 import { SubmitButton } from '@/components/SubmitButton'
 
+import { GROUP_AVATARS } from '@/utils/avatars'
+
 export function RoomAvatarForm({ roomId, currentAvatarUrl }: { roomId: string, currentAvatarUrl: string | null }) {
   const [successMsg, setSuccessMsg] = useState('')
 
@@ -28,10 +30,9 @@ export function RoomAvatarForm({ roomId, currentAvatarUrl }: { roomId: string, c
         <input type="hidden" name="roomId" value={roomId} />
         
         <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
-          {['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta', 'Eta', 'Theta', 'Iota', 'Kappa'].map((seed, i) => {
-            const url = `https://api.dicebear.com/9.x/shapes/svg?seed=${seed}`
+          {GROUP_AVATARS.map((url, i) => {
             return (
-              <label key={seed} className="relative cursor-pointer flex-shrink-0">
+              <label key={url} className="relative cursor-pointer flex-shrink-0">
                 <input 
                   type="radio" 
                   name="avatarUrl" 

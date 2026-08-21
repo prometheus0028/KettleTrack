@@ -10,6 +10,7 @@ import { createRoom, joinRoom } from '@/app/actions'
 import { FilterDropdown } from '@/components/FilterDropdown'
 import { SearchToggle } from './SearchToggle'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { GROUP_AVATARS } from '@/utils/avatars'
 
 import { Suspense } from 'react'
 
@@ -146,11 +147,11 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
                   <div>
                     <label className="text-[13px] font-semibold text-[var(--muted-foreground)] mb-3 block uppercase tracking-wider">Group Avatar</label>
                     <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
-                      {['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta', 'Eta', 'Theta', 'Iota', 'Kappa'].map((seed, i) => (
-                        <label key={seed} className="relative cursor-pointer flex-shrink-0">
-                          <input type="radio" name="avatarUrl" value={`https://api.dicebear.com/9.x/shapes/svg?seed=${seed}`} defaultChecked={i === 0} className="peer sr-only" />
+                      {GROUP_AVATARS.map((url, i) => (
+                        <label key={url} className="relative cursor-pointer flex-shrink-0">
+                          <input type="radio" name="avatarUrl" value={url} defaultChecked={i === 0} className="peer sr-only" />
                           <div className="w-12 h-12 rounded-full border-2 border-transparent peer-checked:border-[#1cc29f] peer-checked:scale-110 transition-all overflow-hidden bg-[var(--secondary)]">
-                            <img src={`https://api.dicebear.com/9.x/shapes/svg?seed=${seed}`} alt="avatar" className="w-full h-full object-cover" />
+                            <img src={url} alt="avatar" className="w-full h-full object-cover" />
                           </div>
                         </label>
                       ))}
