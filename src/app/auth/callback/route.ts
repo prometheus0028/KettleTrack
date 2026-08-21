@@ -18,10 +18,7 @@ export async function GET(request: Request) {
         // Sync user to Prisma
         await prisma.user.upsert({
           where: { email: user.email },
-          update: {
-            name: user.user_metadata?.name || user.user_metadata?.full_name,
-            avatarUrl: user.user_metadata?.avatar_url,
-          },
+          update: {},
           create: {
             id: user.id, // Keep Supabase user ID and Prisma ID in sync
             email: user.email!,

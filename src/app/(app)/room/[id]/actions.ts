@@ -22,64 +22,97 @@ if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   )
 }
 
+function hashSubgroup(userIds: string[]): string {
+  return [...userIds].sort().join(',')
+}
+
+export async function getOrCreateSubgroup(roomId: string, userIds: string[]) {
+  if (userIds.length < 2) throw new Error("A subgroup must have at least 2 members.")
+  const hash = hashSubgroup(userIds)
+  
+  let subgroup = await prisma.subgroup.findUnique({
+    where: { roomId_hash: { roomId, hash } },
+    include: { members: { orderBy: { position: 'asc' }, include: { user: true } } }
+  })
+
+  if (!subgroup) {
+    // Lazy creation: shuffle members so the initial queue order is random
+    const shuffledUserIds = [...userIds].sort(() => Math.random() - 0.5)
+    
+    subgroup = await prisma.subgroup.create({
+      data: {
+        roomId,
+        hash,
+        isActive: true,
+        members: {
+          create: shuffledUserIds.map((uid, idx) => ({
+            userId: uid,
+            position: idx
+          }))
+        }
+      },
+      include: { members: { orderBy: { position: 'asc' }, include: { user: true } } }
+    })
+  } else if (!subgroup.isActive) {
+    subgroup = await prisma.subgroup.update({
+      where: { id: subgroup.id },
+      data: { isActive: true },
+      include: { members: { orderBy: { position: 'asc' }, include: { user: true } } }
+    })
+  }
+  
+  return subgroup
+}
+
+export async function getTurnForSubgroup(roomId: string, userIds: string[]) {
+  const subgroup = await getOrCreateSubgroup(roomId, userIds)
+  // The first person in the queue is whose turn it is
+  return subgroup.members[0].user
+}
+
 export async function logWash(formData: FormData) {
-  debugLog('--- logWash called ---')
-  console.log('logWash called');
   const roomId = formData.get('roomId') as string
-  console.log('roomId:', roomId);
-  const scheduledUserId = formData.get('expectedTurnUserId') as string
-  console.log('scheduledUserId:', scheduledUserId);
+  const whoUsedItStr = formData.get('whoUsedItIds') as string
+  const washedById = formData.get('washedById') as string
+  
+  if (!roomId || !whoUsedItStr || !washedById) return
+
+  const whoUsedItIds: string[] = JSON.parse(whoUsedItStr)
+  if (whoUsedItIds.length < 2) return
 
   const supabase = await createClient()
-  const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+  const { data: { session } } = await supabase.auth.getSession()
 
-  debugLog('session fetched', !!session, 'error:', sessionError)
-
-  if (!session?.user || !roomId) {
-    debugLog('returning early. User:', session?.user?.id, 'roomId:', roomId)
-    console.log('no session or roomId');
-    return
-  }
-
-  const washedById = session.user.id
-  const isOverride = scheduledUserId && scheduledUserId !== washedById
-  
-  let washerName = session.user.email?.split('@')[0] || 'Someone'
+  if (!session?.user) return
 
   try {
+    const subgroup = await getOrCreateSubgroup(roomId, whoUsedItIds)
+    const expectedTurnUserId = subgroup.members[0].userId
+    const isOverride = expectedTurnUserId !== washedById
+
+    let washerName = session.user.email?.split('@')[0] || 'Someone'
     const user = await prisma.user.findUnique({ where: { id: washedById } })
     if (user && user.name) washerName = user.name
 
-    const room = await prisma.room.findUnique({ 
-      where: { id: roomId },
-      include: {
-        members: { where: { isActive: true }, orderBy: { position: 'asc' }, include: { user: true } },
-      }
-    })
-    
-    if (!room) return
-
     let favorFulfilled = false
     let targetOverrideUser: any = null
-    
-    // Choose the wash log joke based on the scenario for the washer
     let logJoke: string | null = null
-    
-    // 1. Transaction to handle the wash log and favors
+
     await prisma.$transaction(async (tx) => {
+      let washLogId = ""
+
       if (isOverride) {
-        // Does the washer currently owe the scheduled user a favor?
+        // Did washer owe a favor to the expectedTurnUserId?
         const existingDebt = await tx.favor.findFirst({
           where: {
             roomId,
             owedByUserId: washedById,
-            coveredByUserId: scheduledUserId,
+            coveredByUserId: expectedTurnUserId,
             settled: false
           }
         })
 
         if (existingDebt) {
-          // Settle the debt
           await tx.favor.update({
             where: { id: existingDebt.id },
             data: { settled: true, settledAt: new Date() }
@@ -91,64 +124,84 @@ export async function logWash(formData: FormData) {
             where: {
               roomId,
               owedByUserId: washedById,
-              coveredByUserId: scheduledUserId,
+              coveredByUserId: expectedTurnUserId,
               settled: false
             }
           })
 
-          await tx.washLog.create({
+          const washLog = await tx.washLog.create({
             data: {
               roomId,
+              subgroupId: subgroup.id,
               washedById,
-              expectedTurnUserId: scheduledUserId || null,
+              expectedTurnUserId,
               isOverride: true,
               favorSettled: true,
               note: remaining > 0 ? "one favor settled" : "all favors settled",
               joke: logJoke
             }
           })
+          washLogId = washLog.id
         } else {
           logJoke = OVERRIDE_JOKES[Math.floor(Math.random() * OVERRIDE_JOKES.length)]
-          // Create new favor
           const washLog = await tx.washLog.create({
             data: {
               roomId,
+              subgroupId: subgroup.id,
               washedById,
-              expectedTurnUserId: scheduledUserId || null,
+              expectedTurnUserId,
               isOverride: true,
               joke: logJoke
             }
           })
+          washLogId = washLog.id
           
           await tx.favor.create({
             data: {
               roomId,
-              owedByUserId: scheduledUserId,
+              owedByUserId: expectedTurnUserId,
               coveredByUserId: washedById,
               washLogId: washLog.id,
               settled: false
             }
           })
-          
-          // Set variables for sending override notification later
-          targetOverrideUser = await tx.user.findUnique({ where: { id: scheduledUserId } })
+          targetOverrideUser = await tx.user.findUnique({ where: { id: expectedTurnUserId } })
         }
       } else {
-        // Normal wash, we might just pick a next turn joke or leave it null. Let's just pick one.
         logJoke = NEXT_TURN_JOKES[Math.floor(Math.random() * NEXT_TURN_JOKES.length)]
-        await tx.washLog.create({
+        const washLog = await tx.washLog.create({
           data: {
             roomId,
+            subgroupId: subgroup.id,
             washedById,
-            expectedTurnUserId: scheduledUserId || null,
+            expectedTurnUserId,
             isOverride: false,
             joke: logJoke
           }
         })
+        washLogId = washLog.id
       }
+
+      // Advance queue: move front member to the back
+      const members = await tx.subgroupMember.findMany({
+        where: { subgroupId: subgroup.id },
+        orderBy: { position: 'asc' }
+      })
+      
+      const firstMember = members[0]
+      for (let i = 1; i < members.length; i++) {
+        await tx.subgroupMember.update({
+          where: { id: members[i].id },
+          data: { position: i - 1 }
+        })
+      }
+      await tx.subgroupMember.update({
+        where: { id: firstMember.id },
+        data: { position: members.length - 1 }
+      })
     })
 
-    // 2. Send OVERRIDE Notification (if they just created a debt)
+    // 2. Send OVERRIDE Notification
     if (isOverride && !favorFulfilled && targetOverrideUser && targetOverrideUser.notifyOverride) {
       const overrideJoke = OVERRIDE_JOKES[Math.floor(Math.random() * OVERRIDE_JOKES.length)]
       const payload = JSON.stringify({
@@ -168,9 +221,9 @@ export async function logWash(formData: FormData) {
       }
     }
     
-    // 3. Send FAVOR FULFILLED Notification (if they just paid off a debt)
+    // 3. Send FAVOR FULFILLED Notification
     if (favorFulfilled) {
-      const targetUser = await prisma.user.findUnique({ where: { id: scheduledUserId } })
+      const targetUser = await prisma.user.findUnique({ where: { id: expectedTurnUserId } })
       if (targetUser && targetUser.notifyFavorFulfilled) {
         const fulfillJoke = FAVOR_FULFILLED_JOKES[Math.floor(Math.random() * FAVOR_FULFILLED_JOKES.length)]
         const payload = JSON.stringify({
@@ -191,20 +244,16 @@ export async function logWash(formData: FormData) {
       }
     }
 
-    // 4. Calculate Next Turn
-    const activeMembers = room.members
-    const lastScheduledUserId = scheduledUserId || washedById
-    const lastPosIndex = activeMembers.findIndex(m => m.userId === lastScheduledUserId)
+    // 4. Send NEXT TURN Notification for the subgroup
+    const updatedMembers = await prisma.subgroupMember.findMany({
+      where: { subgroupId: subgroup.id },
+      orderBy: { position: 'asc' },
+      include: { user: true }
+    })
     
-    let nextIndex = 0
-    if (lastPosIndex !== -1) {
-      nextIndex = (lastPosIndex + 1) % activeMembers.length
-    }
-    const nextUser = activeMembers[nextIndex]?.user
+    const nextUser = updatedMembers[0]?.user
 
-    // 5. Send NEXT TURN Notification
     if (nextUser && nextUser.id !== washedById) {
-      // Check if nextUser is owed a favor by anyone
       const owedFavor = await prisma.favor.findFirst({
         where: { roomId, coveredByUserId: nextUser.id, settled: false }
       })
@@ -236,7 +285,6 @@ export async function logWash(formData: FormData) {
 
     revalidatePath('/', 'layout')
   } catch (error: any) {
-    debugLog('logWash error:', error?.message || error)
     console.error(error)
   }
 }
@@ -253,95 +301,32 @@ export async function updateRoomName(formData: FormData) {
   if (!session?.user) return
 
   try {
-    // Anyone can rename
-    const room = await prisma.room.findUnique({ where: { id: roomId } })
-    if (!room) return
-
     await prisma.room.update({
       where: { id: roomId },
       data: { name }
     })
-
     revalidatePath('/', 'layout')
   } catch (error) {
     console.error(error)
   }
 }
 
-export async function reorderMember(roomId: string, memberId: string, direction: 'up' | 'down') {
+export async function updateRoomAvatar(formData: FormData) {
+  const roomId = formData.get('roomId') as string
+  const avatarUrl = formData.get('avatarUrl') as string
+
+  if (!roomId || !avatarUrl) return
+
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
 
   if (!session?.user) return
 
   try {
-    const room = await prisma.room.findUnique({ where: { id: roomId } })
-    if (!room) return
-    if (room.queueLocked) return
-
-    const members = await prisma.roomMember.findMany({
-      where: { roomId },
-      orderBy: { position: 'asc' }
+    await prisma.room.update({
+      where: { id: roomId },
+      data: { avatarUrl }
     })
-
-    const index = members.findIndex(m => m.id === memberId)
-    if (index === -1) return
-
-    const targetIndex = direction === 'up' ? index - 1 : index + 1
-    if (targetIndex < 0 || targetIndex >= members.length) return
-
-    const currentMember = members[index]
-    const targetMember = members[targetIndex]
-
-    // Swap positions
-    await prisma.$transaction([
-      prisma.roomMember.update({
-        where: { id: currentMember.id },
-        data: { position: targetMember.position }
-      }),
-      prisma.roomMember.update({
-        where: { id: targetMember.id },
-        data: { position: currentMember.position }
-      })
-    ])
-
-    revalidatePath('/', 'layout')
-  } catch (error) {
-    console.error(error)
-  }
-}
-
-export async function updateMemberOrder(roomId: string, memberIds: string[]) {
-  const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-
-  if (!session?.user || !roomId || !memberIds || memberIds.length === 0) return
-
-  try {
-    const room = await prisma.room.findUnique({ where: { id: roomId } })
-    if (!room) return
-    if (room.queueLocked) return
-
-    // Ensure all members belong to the room
-    const members = await prisma.roomMember.findMany({
-      where: { roomId }
-    })
-    
-    const validMemberIds = new Set(members.map(m => m.id))
-    for (const id of memberIds) {
-      if (!validMemberIds.has(id)) return // Invalid input
-    }
-
-    // Update positions in a transaction
-    await prisma.$transaction(
-      memberIds.map((memberId, index) => 
-        prisma.roomMember.update({
-          where: { id: memberId },
-          data: { position: index }
-        })
-      )
-    )
-
     revalidatePath('/', 'layout')
   } catch (error) {
     console.error(error)
@@ -350,23 +335,21 @@ export async function updateMemberOrder(roomId: string, memberIds: string[]) {
 
 export async function deleteRoom(formData: FormData) {
   const roomId = formData.get('roomId') as string
-
   if (!roomId) return
 
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
-
   if (!session?.user) return
 
   try {
     const room = await prisma.room.findUnique({ where: { id: roomId } })
     if (!room) return
 
-    // Delete cascading dependencies manually if Prisma doesn't do it via onDelete
-    // Favors -> WashLogs -> RoomMembers -> Room
     await prisma.$transaction([
       prisma.favor.deleteMany({ where: { roomId } }),
       prisma.washLog.deleteMany({ where: { roomId } }),
+      prisma.subgroupMember.deleteMany({ where: { subgroup: { roomId } } }),
+      prisma.subgroup.deleteMany({ where: { roomId } }),
       prisma.roomMember.deleteMany({ where: { roomId } }),
       prisma.room.delete({ where: { id: roomId } })
     ])
@@ -377,32 +360,6 @@ export async function deleteRoom(formData: FormData) {
   }
   
   redirect('/')
-}
-
-export async function toggleMemberActive(formData: FormData) {
-  const roomId = formData.get('roomId') as string
-  const memberId = formData.get('memberId') as string
-  const isActiveStr = formData.get('isActive') as string
-
-  const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-
-  if (!session?.user || !roomId || !memberId) return
-
-  const room = await prisma.room.findUnique({
-    where: { id: roomId }
-  })
-
-  if (!room) return
-
-  await prisma.roomMember.update({
-    where: { id: memberId },
-    data: {
-      isActive: isActiveStr === 'true'
-    }
-  })
-
-  revalidatePath('/', 'layout')
 }
 
 export async function deleteWashLog(formData: FormData) {
@@ -416,74 +373,36 @@ export async function deleteWashLog(formData: FormData) {
   if (!session?.user) return
 
   try {
-    await prisma.$transaction([
-      prisma.favor.deleteMany({ where: { washLogId: logId } }),
-      prisma.washLog.delete({ where: { id: logId } })
-    ])
+    const log = await prisma.washLog.findUnique({ where: { id: logId } })
+    if (!log || !log.subgroupId) return
 
-    revalidatePath('/', 'layout')
-  } catch (error) {
-    console.error(error)
-  }
-
-  redirect(`/room/${roomId}`)
-}
-
-export async function updateWashLog(formData: FormData) {
-  const logId = formData.get('logId') as string
-  const roomId = formData.get('roomId') as string
-  const newWashedById = formData.get('washedById') as string
-
-  if (!logId || !roomId || !newWashedById) return
-
-  const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session?.user) return
-
-  try {
     await prisma.$transaction(async (tx) => {
-      const log = await tx.washLog.findUnique({ where: { id: logId } })
-      if (!log) return
+      // 1. Delete associated favors
+      await tx.favor.deleteMany({ where: { washLogId: logId } })
 
-      const isOverride = log.expectedTurnUserId && log.expectedTurnUserId !== newWashedById
-
-      await tx.washLog.update({
-        where: { id: logId },
-        data: {
-          washedById: newWashedById,
-          isOverride: !!isOverride
-        }
+      // 2. Rewind the subgroup queue
+      const members = await tx.subgroupMember.findMany({
+        where: { subgroupId: log.subgroupId! },
+        orderBy: { position: 'asc' }
       })
 
-      const existingFavor = await tx.favor.findFirst({
-        where: { washLogId: logId }
-      })
-
-      if (isOverride) {
-        if (existingFavor) {
-          await tx.favor.update({
-            where: { id: existingFavor.id },
-            data: {
-              coveredByUserId: newWashedById,
-              owedByUserId: log.expectedTurnUserId!
-            }
-          })
-        } else {
-          await tx.favor.create({
-            data: {
-              roomId,
-              owedByUserId: log.expectedTurnUserId!,
-              coveredByUserId: newWashedById,
-              washLogId: logId,
-              settled: false
-            }
+      // To rewind, move the LAST member to position 0, shift everyone else down
+      if (members.length > 0) {
+        const lastMember = members[members.length - 1]
+        for (let i = members.length - 2; i >= 0; i--) {
+          await tx.subgroupMember.update({
+            where: { id: members[i].id },
+            data: { position: i + 1 }
           })
         }
-      } else {
-        if (existingFavor) {
-          await tx.favor.delete({ where: { id: existingFavor.id } })
-        }
+        await tx.subgroupMember.update({
+          where: { id: lastMember.id },
+          data: { position: 0 }
+        })
       }
+
+      // 3. Delete log
+      await tx.washLog.delete({ where: { id: logId } })
     })
 
     revalidatePath('/', 'layout')
@@ -493,6 +412,8 @@ export async function updateWashLog(formData: FormData) {
 
   redirect(`/room/${roomId}`)
 }
+
+
 
 export async function leaveRoom(formData: FormData) {
   const roomId = formData.get('roomId') as string
@@ -506,14 +427,8 @@ export async function leaveRoom(formData: FormData) {
   if (!session?.user) return
 
   try {
-    const room = await prisma.room.findUnique({ where: { id: roomId } })
-    if (!room) return
-
     const member = await prisma.roomMember.findUnique({ where: { id: memberId } })
-    
-    if (member?.userId !== session.user.id) {
-      return // Ensure a user can only remove themselves
-    }
+    if (member?.userId !== session.user.id) return 
 
     const unresolvedDebts = await prisma.favor.findMany({
       where: {
@@ -526,11 +441,24 @@ export async function leaveRoom(formData: FormData) {
       }
     })
 
-    if (unresolvedDebts.length > 0) {
-      return // Cannot leave if they owe debts
-    }
+    if (unresolvedDebts.length > 0) return 
 
-    await prisma.roomMember.delete({ where: { id: memberId } })
+    await prisma.$transaction(async (tx) => {
+      // Mark any subgroups this user is in as inactive
+      const userSubgroupMembers = await tx.subgroupMember.findMany({
+        where: { userId: session.user.id, subgroup: { roomId } }
+      })
+      
+      const subgroupIDs = userSubgroupMembers.map(m => m.subgroupId)
+      if (subgroupIDs.length > 0) {
+        await tx.subgroup.updateMany({
+          where: { id: { in: subgroupIDs } },
+          data: { isActive: false }
+        })
+      }
+
+      await tx.roomMember.delete({ where: { id: memberId } })
+    })
 
     revalidatePath('/', 'layout')
   } catch (error) {
@@ -540,34 +468,19 @@ export async function leaveRoom(formData: FormData) {
   redirect('/')
 }
 
-export async function nudgeUser(targetUserId: string, roomId: string) {
-  debugLog('--- nudgeUser called ---', targetUserId, roomId)
+export async function nudgeUserForSubgroup(targetUserId: string, roomId: string, subgroupId: string) {
   const supabase = await createClient()
-  const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+  const { data: { session } } = await supabase.auth.getSession()
 
-  debugLog('session fetched', !!session, 'error:', sessionError)
-
-  if (!session?.user) {
-    debugLog('No session user found')
-    return
-  }
+  if (!session?.user) return
 
   try {
     const nudger = await prisma.user.findUnique({ where: { id: session.user.id } })
-    if (!nudger) {
-      debugLog('Nudger not found in DB')
-      return
-    }
-
     const targetUser = await prisma.user.findUnique({ where: { id: targetUserId } })
-    if (!targetUser) {
-      debugLog('Target user not found in DB')
-      return
-    }
+    if (!nudger || !targetUser) return
 
     const randomJoke = NUDGE_JOKES[Math.floor(Math.random() * NUDGE_JOKES.length)]
 
-    // Log the nudge in the DB
     await prisma.nudgeLog.create({
       data: {
         roomId,
@@ -592,13 +505,9 @@ export async function nudgeUser(targetUserId: string, roomId: string) {
         try {
           await webpush.sendNotification({
             endpoint: sub.endpoint,
-            keys: {
-              auth: sub.auth,
-              p256dh: sub.p256dh
-            }
+            keys: { auth: sub.auth, p256dh: sub.p256dh }
           }, payload)
         } catch (err: any) {
-          console.error('Failed to send push notification', err)
           if (err?.statusCode === 410 || err?.statusCode === 404) {
             await prisma.pushSubscription.delete({ where: { id: sub.id } })
           }
@@ -610,4 +519,52 @@ export async function nudgeUser(targetUserId: string, roomId: string) {
   } catch (error) {
     console.error(error)
   }
+}
+
+export async function reorderSubgroup(roomId: string, subgroupId: string, memberIdsInOrder: string[]) {
+  const supabase = await createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+
+  if (!session?.user) return
+
+  try {
+    const room = await prisma.room.findUnique({ where: { id: roomId } })
+    if (!room || room.ownerId !== session.user.id) return // Only admin
+
+    const subgroup = await prisma.subgroup.findUnique({ where: { id: subgroupId } })
+    if (!subgroup || subgroup.queueLocked) return
+
+    await prisma.$transaction(async (tx) => {
+      // Ensure all members belong to the subgroup
+      const members = await tx.subgroupMember.findMany({ where: { subgroupId } })
+      const validMemberIds = new Set(members.map(m => m.id))
+      
+      for (const id of memberIdsInOrder) {
+        if (!validMemberIds.has(id)) return // Invalid input
+      }
+
+      // Update positions
+      for (let i = 0; i < memberIdsInOrder.length; i++) {
+        await tx.subgroupMember.update({
+          where: { id: memberIdsInOrder[i] },
+          data: { position: i }
+        })
+      }
+
+      await tx.subgroup.update({
+        where: { id: subgroupId },
+        data: { queueLocked: true }
+      })
+    })
+
+    revalidatePath(`/room/${roomId}`)
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+export async function getPredictedTurn(roomId: string, whoUsedItIds: string[]) {
+  if (whoUsedItIds.length < 2) return null
+  const subgroup = await getOrCreateSubgroup(roomId, whoUsedItIds)
+  return subgroup.members[0].user
 }

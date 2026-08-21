@@ -87,3 +87,13 @@ export const FAVOR_FULFILLED_JOKES = [
   "A kettle favor officially returned to sender.",
   "The debt is cleared. You may now return to your normal lives."
 ]
+
+export const GREETING_JOKES = [
+  'How crusty is it today?',
+  'Did someone leave noodles in the kettle again?',
+  'Welcome back to the washing wars.',
+  'Ready to scrub some scale?',
+  'Hope you brought your cleaning gloves.',
+  'Another day, another dirty kettle.',
+  'The health inspector is watching.',
+]

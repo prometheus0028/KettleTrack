@@ -17,7 +17,7 @@ export function DeleteLogButton() {
       </button>
 
       {showConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-[var(--card)] border border-[var(--border)] w-full max-w-sm rounded-2xl p-6 shadow-xl animate-in zoom-in-95 duration-200">
             <h3 className="text-[19px] font-bold text-[var(--foreground)] mb-2">Delete wash log?</h3>
             <p className="text-[15px] text-[var(--muted-foreground)] mb-6 leading-relaxed">

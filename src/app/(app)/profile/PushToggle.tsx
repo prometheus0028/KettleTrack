@@ -13,6 +13,42 @@ const urlBase64ToUint8Array = (base64String: string) => {
   return outputArray
 }
 
+const ToggleItem = ({ label, desc, prefKey, initial }: { label: string, desc: string, prefKey: string, initial: boolean }) => {
+  const [checked, setChecked] = useState(initial)
+  
+  const handleTogglePref = async (pref: string, value: boolean) => {
+    try {
+      await fetch('/api/user/prefs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [pref]: value })
+      })
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  return (
+    <div className="flex items-center justify-between py-2 pl-4">
+      <div className="flex flex-col">
+        <span className="text-[14px] text-[var(--foreground)]">{label}</span>
+        <span className="text-[12px] text-[var(--muted-foreground)]">{desc}</span>
+      </div>
+      <button 
+        type="button"
+        onClick={() => {
+          const next = !checked
+          setChecked(next)
+          handleTogglePref(prefKey, next)
+        }}
+        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${checked ? 'bg-[#1cc29f]' : 'bg-[var(--secondary)]'}`}
+      >
+        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${checked ? 'translate-x-4' : 'translate-x-1'}`} />
+      </button>
+    </div>
+  )
+}
+
 export function PushToggle({ user }: { user: any }) {
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [isSupported, setIsSupported] = useState(false)
@@ -101,41 +137,6 @@ export function PushToggle({ user }: { user: any }) {
     )
   }
 
-  const handleTogglePref = async (pref: string, value: boolean) => {
-    try {
-      await fetch('/api/user/prefs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ [pref]: value })
-      })
-    } catch (e) {
-      console.error(e)
-    }
-  }
-
-  const ToggleItem = ({ label, desc, prefKey, initial }: { label: string, desc: string, prefKey: string, initial: boolean }) => {
-    const [checked, setChecked] = useState(initial)
-    return (
-      <div className="flex items-center justify-between py-2 pl-4">
-        <div className="flex flex-col">
-          <span className="text-[14px] text-[var(--foreground)]">{label}</span>
-          <span className="text-[12px] text-[var(--muted-foreground)]">{desc}</span>
-        </div>
-        <button 
-          type="button"
-          onClick={() => {
-            const next = !checked
-            setChecked(next)
-            handleTogglePref(prefKey, next)
-          }}
-          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${checked ? 'bg-[#1cc29f]' : 'bg-[var(--secondary)]'}`}
-        >
-          <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${checked ? 'translate-x-4' : 'translate-x-1'}`} />
-        </button>
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between py-2">
@@ -146,8 +147,7 @@ export function PushToggle({ user }: { user: any }) {
         <button 
           type="button"
           onClick={subscribeButtonOnClick}
-          disabled={loading}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 ${isSubscribed ? 'bg-[#1cc29f]' : 'bg-[var(--secondary)]'}`}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isSubscribed ? 'bg-[#1cc29f]' : 'bg-[var(--secondary)]'}`}
         >
           <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isSubscribed ? 'translate-x-6' : 'translate-x-1'}`} />
         </button>
@@ -165,3 +165,4 @@ export function PushToggle({ user }: { user: any }) {
     </div>
   )
 }
+

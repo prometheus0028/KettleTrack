@@ -1,7 +1,7 @@
 'use client'
 
 import { useFormStatus } from 'react-dom'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 export function SubmitButton({
   defaultText,
@@ -18,19 +18,20 @@ export function SubmitButton({
 }) {
   const { pending } = useFormStatus()
   const [showSuccess, setShowSuccess] = useState(false)
-  const [wasPending, setWasPending] = useState(false)
+  const prevPending = useRef(pending)
 
   useEffect(() => {
     if (pending) {
-      setWasPending(true)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowSuccess(false)
-    } else if (wasPending && !pending) {
-      setWasPending(false)
+    } else if (prevPending.current && !pending) {
       setShowSuccess(true)
       const timer = setTimeout(() => setShowSuccess(false), 2000)
+      prevPending.current = pending
       return () => clearTimeout(timer)
     }
-  }, [pending, wasPending])
+    prevPending.current = pending
+  }, [pending])
 
   return (
     <button 

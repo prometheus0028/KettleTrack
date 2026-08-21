@@ -23,7 +23,7 @@ export default function TermsOfService() {
         <section>
           <h2 className="text-xl font-semibold mb-3">2. Description of Service</h2>
           <p>
-            KettleTrack is a utility app designed to help groups track turns for washing a shared kettle. We provide this service "as is" and reserve the right to modify or discontinue it at any time.
+            KettleTrack is a utility app designed to help groups track turns for washing a shared kettle. We provide this service &quot;as is&quot; and reserve the right to modify or discontinue it at any time.
           </p>
         </section>
 

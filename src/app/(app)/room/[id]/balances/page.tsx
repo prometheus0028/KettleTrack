@@ -93,6 +93,39 @@ export default async function RoomBalancesPage({ params }: { params: Promise<{ i
     }
   })
 
+  // Net out the debts
+  Object.keys(userBalances).forEach(aId => {
+    Object.keys(userBalances[aId].owes).forEach(bId => {
+      const aOwesB = userBalances[aId].owes[bId].count
+      const bOwesA = userBalances[bId]?.owes?.[aId]?.count || 0
+
+      if (aOwesB > 0 && bOwesA > 0) {
+        if (aOwesB > bOwesA) {
+          userBalances[aId].owes[bId].count = aOwesB - bOwesA
+          delete userBalances[bId].owes[aId]
+        } else if (bOwesA > aOwesB) {
+          userBalances[bId].owes[aId].count = bOwesA - aOwesB
+          delete userBalances[aId].owes[bId]
+        } else {
+          delete userBalances[aId].owes[bId]
+          delete userBalances[bId].owes[aId]
+        }
+      }
+    })
+  })
+
+  // Re-evaluate isSettled based on netted owes
+  Object.values(userBalances).forEach(ub => {
+    const totalOwed = Object.values(ub.owes).reduce((acc, curr) => acc + curr.count, 0)
+    
+    // Also check if anyone owes THEM anything after netting
+    const totalOwedToThem = Object.values(userBalances).reduce((acc, other) => {
+      return acc + (other.owes[ub.user.id]?.count || 0)
+    }, 0)
+
+    ub.isSettled = totalOwed === 0 && totalOwedToThem === 0
+  })
+
   return (
     <div className="flex flex-col min-h-full pb-20 bg-[var(--background)]">
       {/* Header */}

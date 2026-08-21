@@ -7,101 +7,128 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  avatarUrl String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-  rooms         RoomMember[]
-  washLogs      WashLog[] @relation("WashedBy")
-  favorsOwed    Favor[]   @relation("FavorsOwed")
-  favorsCovered Favor[]   @relation("FavorsCovered")
-  pushSubscriptions    PushSubscription[]
-  nudgesSent           NudgeLog[]         @relation("Nudger")
-  nudgesReceived       NudgeLog[]         @relation("Nudged")
-  
-  notifyNudge          Boolean            @default(true)
-  notifyOverride       Boolean            @default(true)
+  id                   String             @id @default(uuid())
+  email                String             @unique
+  name                 String?
+  avatarUrl            String?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @default(now()) @updatedAt
+  notifyFavorFulfilled Boolean            @default(true)
   notifyNextTurn       Boolean            @default(true)
   notifyNextTurnFavor  Boolean            @default(true)
-  notifyFavorFulfilled Boolean            @default(true)
+  notifyNudge          Boolean            @default(true)
+  notifyOverride       Boolean            @default(true)
+  favorsCovered        Favor[]            @relation("FavorsCovered")
+  favorsOwed           Favor[]            @relation("FavorsOwed")
+  nudgesReceived       NudgeLog[]         @relation("Nudged")
+  nudgesSent           NudgeLog[]         @relation("Nudger")
+  pushSubscriptions    PushSubscription[]
+  rooms                RoomMember[]
+  subgroupMembers      SubgroupMember[]
+  washLogs             WashLog[]          @relation("WashedBy")
 }
 
 model PushSubscription {
   id        String   @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   endpoint  String   @unique
   p256dh    String
   auth      String
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Room {
-  id        String   @id @default(uuid())
-  name      String
-  ownerId   String
-  joinCode  String   @unique
-  maxMembers  Int      @default(4)
-  queueLocked Boolean  @default(false)
-  createdAt DateTime @default(now())
-  members   RoomMember[]
-  washLogs  WashLog[]
-  favors    Favor[]
-  nudgeLogs NudgeLog[]
+  id         String       @id @default(uuid())
+  name       String
+  ownerId    String
+  joinCode   String       @unique
+  avatarUrl  String?
+  createdAt  DateTime     @default(now())
+  maxMembers Int          @default(4)
+  favors     Favor[]
+  nudgeLogs  NudgeLog[]
+  members    RoomMember[]
+  subgroups  Subgroup[]
+  washLogs   WashLog[]
 }
 
 model RoomMember {
-  id       String  @id @default(uuid())
+  id       String   @id @default(uuid())
   roomId   String
   userId   String
-  position Int
-  isActive Boolean @default(true)
+  isActive Boolean  @default(true)
   joinedAt DateTime @default(now())
-  room     Room    @relation(fields: [roomId], references: [id])
-  user     User    @relation(fields: [userId], references: [id])
+  room     Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([roomId, userId])
 }
 
+model Subgroup {
+  id          String           @id @default(uuid())
+  roomId      String
+  hash        String
+  queueLocked Boolean          @default(false)
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  room        Room             @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  members     SubgroupMember[]
+  washLogs    WashLog[]
+
+  @@unique([roomId, hash])
+}
+
+model SubgroupMember {
+  id         String   @id @default(uuid())
+  subgroupId String
+  userId     String
+  position   Int
+  subgroup   Subgroup @relation(fields: [subgroupId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([subgroupId, userId])
+}
+
 model WashLog {
-  id                 String   @id @default(uuid())
+  id                 String    @id @default(uuid())
   roomId             String
   washedById         String
   expectedTurnUserId String?
-  isOverride         Boolean  @default(false)
-  favorSettled       Boolean  @default(false)
+  isOverride         Boolean   @default(false)
+  washedAt           DateTime  @default(now())
   joke               String?
+  favorSettled       Boolean   @default(false)
   note               String?
-  washedAt           DateTime @default(now())
-  room               Room     @relation(fields: [roomId], references: [id])
-  washedBy           User     @relation("WashedBy", fields: [washedById], references: [id])
+  subgroupId         String?
   favorsCreated      Favor[]
+  room               Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  subgroup           Subgroup? @relation(fields: [subgroupId], references: [id], onDelete: Cascade)
+  washedBy           User      @relation("WashedBy", fields: [washedById], references: [id], onDelete: Cascade)
 }
 
 model Favor {
-  id               String    @id @default(uuid())
-  roomId           String
-  owedByUserId     String
-  coveredByUserId  String
-  washLogId        String
-  settled          Boolean   @default(false)
-  settledAt        DateTime?
-  room             Room      @relation(fields: [roomId], references: [id])
-  washLog          WashLog   @relation(fields: [washLogId], references: [id])
-  owedByUser       User      @relation("FavorsOwed", fields: [owedByUserId], references: [id])
-  coveredByUser    User      @relation("FavorsCovered", fields: [coveredByUserId], references: [id])
+  id              String    @id @default(uuid())
+  roomId          String
+  owedByUserId    String
+  coveredByUserId String
+  washLogId       String
+  settled         Boolean   @default(false)
+  settledAt       DateTime?
+  coveredByUser   User      @relation("FavorsCovered", fields: [coveredByUserId], references: [id])
+  owedByUser      User      @relation("FavorsOwed", fields: [owedByUserId], references: [id])
+  room            Room      @relation(fields: [roomId], references: [id])
+  washLog         WashLog   @relation(fields: [washLogId], references: [id])
 }
 
 model NudgeLog {
-  id          String   @id @default(uuid())
-  roomId      String
-  nudgerId    String
-  nudgedId    String
-  joke        String?
-  createdAt   DateTime @default(now())
-  room        Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  nudger      User     @relation("Nudger", fields: [nudgerId], references: [id], onDelete: Cascade)
-  nudged      User     @relation("Nudged", fields: [nudgedId], references: [id], onDelete: Cascade)
+  id        String   @id @default(uuid())
+  roomId    String
+  nudgerId  String
+  nudgedId  String
+  createdAt DateTime @default(now())
+  joke      String?
+  nudged    User     @relation("Nudged", fields: [nudgedId], references: [id], onDelete: Cascade)
+  nudger    User     @relation("Nudger", fields: [nudgerId], references: [id], onDelete: Cascade)
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
 }

@@ -12,35 +12,47 @@ async function getUserId() {
 }
 
 export async function createRoom(formData: FormData) {
-  const userId = await getUserId()
-  if (!userId) throw new Error('Unauthorized')
-
   const name = formData.get('name') as string
-  if (!name) throw new Error('Room name required')
-
   const maxMembersStr = formData.get('maxMembers') as string
-  const maxMembers = maxMembersStr ? parseInt(maxMembersStr, 10) : 4
+  const avatarUrl = formData.get('avatarUrl') as string | null
+  const maxMembers = parseInt(maxMembersStr, 10) || 4
 
+  if (!name || name.trim() === '') {
+    redirect('/?error=invalid_name')
+  }
+
+  const supabase = await createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+
+  if (!session?.user) {
+    redirect('/login')
+  }
+
+  const userId = session.user.id
+
+  // Ensure user exists in our DB
+  await syncUser()
+
+  // Generate a random 6 character join code
   const joinCode = Math.random().toString(36).substring(2, 8).toUpperCase()
 
-  const newRoom = await prisma.room.create({
+  const room = await prisma.room.create({
     data: {
-      name,
-      maxMembers,
+      name: name.trim(),
       ownerId: userId,
       joinCode,
+      maxMembers,
+      avatarUrl,
       members: {
         create: {
-          userId,
-          position: 0,
-          isActive: true
+          userId
         }
       }
     }
   })
 
   revalidatePath('/', 'layout')
-  redirect(`/room/${newRoom.id}`)
+  redirect(`/room/${room.id}`)
 }
 
 export async function joinRoom(formData: FormData) {
@@ -78,7 +90,6 @@ export async function joinRoom(formData: FormData) {
       data: {
         roomId: room.id,
         userId,
-        position: room.members.length,
         isActive: true
       }
     })
@@ -103,10 +114,7 @@ export async function syncUser() {
     const { user } = session
     await prisma.user.upsert({
       where: { email: user.email },
-      update: {
-        name: user.user_metadata?.name || user.user_metadata?.full_name,
-        avatarUrl: user.user_metadata?.avatar_url,
-      },
+      update: {},
       create: {
         id: user.id,
         email: user.email!,
@@ -117,34 +125,3 @@ export async function syncUser() {
   }
 }
 
-export async function reorderQueue(roomId: string, memberIdsInOrder: string[]) {
-  const userId = await getUserId()
-  if (!userId) throw new Error('Unauthorized')
-
-  const room = await prisma.room.findUnique({
-    where: { id: roomId },
-    include: { members: true }
-  })
-
-  if (!room) throw new Error('Room not found')
-  if (room.ownerId !== userId) throw new Error('Only the admin can reorder the queue')
-  if (room.queueLocked) throw new Error('The queue order has already been locked')
-
-  // Update positions based on array order in a transaction
-  const updates = memberIdsInOrder.map((mId, index) => {
-    return prisma.roomMember.update({
-      where: { id: mId },
-      data: { position: index }
-    })
-  })
-
-  await prisma.$transaction([
-    ...updates,
-    prisma.room.update({
-      where: { id: roomId },
-      data: { queueLocked: true }
-    })
-  ])
-
-  revalidatePath(`/room/${roomId}`)
-}

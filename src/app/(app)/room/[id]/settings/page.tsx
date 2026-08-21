@@ -7,8 +7,9 @@ import { deleteRoom, leaveRoom } from '../actions'
 import { DeleteGroupButton } from './DeleteGroupButton'
 import { LeaveGroupButton } from './LeaveGroupButton'
 import { RoomNameForm } from './RoomNameForm'
-import { SortableMemberList } from './SortableMemberList'
+import { RoomAvatarForm } from './RoomAvatarForm'
 import { InviteLinkButton } from './InviteLinkButton'
+import { SubgroupsManager } from './SubgroupsManager'
 
 export default async function RoomSettingsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: roomId } = await params
@@ -24,8 +25,16 @@ export default async function RoomSettingsPage({ params }: { params: Promise<{ i
     where: { id: roomId },
     include: {
       members: {
-        include: { user: true },
-        orderBy: { position: 'asc' }
+        include: { user: true }
+      },
+      subgroups: {
+        where: { isActive: true },
+        include: {
+          members: {
+            include: { user: true },
+            orderBy: { position: 'asc' }
+          }
+        }
       }
     }
   })
@@ -66,6 +75,7 @@ export default async function RoomSettingsPage({ params }: { params: Promise<{ i
         {/* Rename Room */}
         <div>
           <RoomNameForm roomId={room.id} initialName={room.name} />
+          <RoomAvatarForm roomId={room.id} currentAvatarUrl={room.avatarUrl} />
 
           <h2 className="text-[13px] font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-2">Join Code</h2>
           <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-3 text-[15px] text-[var(--foreground)] font-mono uppercase tracking-widest text-center mb-3">
@@ -74,38 +84,22 @@ export default async function RoomSettingsPage({ params }: { params: Promise<{ i
           <InviteLinkButton joinCode={room.joinCode} />
         </div>
 
-        {/* Cycle Tracking */}
+        {/* Cycle Tracking - Subgroups */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-[13px] font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">Cycle Tracking</h2>
-            {isOwner && !room.queueLocked && (
-              <form action={async () => {
-                'use server'
-                const { prisma } = await import('@/utils/prisma')
-                const { revalidatePath } = await import('next/cache')
-                await prisma.room.update({ where: { id: room.id }, data: { queueLocked: true } })
-                revalidatePath(`/room/${room.id}/settings`)
-              }}>
-                <button type="submit" className="text-[12px] bg-[#1cc29f] text-white px-3 py-1.5 rounded-full font-medium hover:bg-[#159e80] active:scale-[0.98] transition-all">
-                  Lock Order
-                </button>
-              </form>
-            )}
+            <h2 className="text-[13px] font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">Sub-groups (Cycles)</h2>
           </div>
-          
           <p className="text-[14px] text-[var(--foreground)] mb-4">
-            {room.queueLocked 
-              ? "The washing order has been locked and cannot be changed." 
-              : isOwner 
-                ? "Manage the active rotation for washing the kettle. Drag and drop members to reorder them. You can lock the order when you're done." 
-                : "The active rotation for washing the kettle."}
+            {isOwner 
+              ? "Manage the active rotations for washing the kettle based on who drank. You can lock an order once it is set." 
+              : "The active rotations for washing the kettle."}
           </p>
-          
-          <SortableMemberList 
-            roomId={room.id}
-            initialMembers={room.members}
+
+          <SubgroupsManager 
+            roomId={room.id} 
+            subgroups={room.subgroups} 
+            isOwner={isOwner}
             currentUserId={session.user.id}
-            disabled={room.queueLocked || !isOwner}
           />
         </div>
 

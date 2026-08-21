@@ -140,9 +140,22 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
                 </div>
                 
                 <h2 className="text-2xl font-bold text-[var(--foreground)] tracking-tight mb-2">Create a new room</h2>
-                <p className="text-[15px] text-[var(--muted-foreground)] mb-8">Give your room a name to start tracking kettle washes with your roommates.</p>
+                <p className="text-[15px] text-[var(--muted-foreground)] mb-8">Give your room a name and an avatar to start tracking kettle washes with your roommates.</p>
                 
                 <form action={createRoom} className="space-y-6">
+                  <div>
+                    <label className="text-[13px] font-semibold text-[var(--muted-foreground)] mb-3 block uppercase tracking-wider">Group Avatar</label>
+                    <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
+                      {['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta', 'Eta', 'Theta', 'Iota', 'Kappa'].map((seed, i) => (
+                        <label key={seed} className="relative cursor-pointer flex-shrink-0">
+                          <input type="radio" name="avatarUrl" value={`https://api.dicebear.com/9.x/shapes/svg?seed=${seed}`} defaultChecked={i === 0} className="peer sr-only" />
+                          <div className="w-12 h-12 rounded-full border-2 border-transparent peer-checked:border-[#1cc29f] peer-checked:scale-110 transition-all overflow-hidden bg-[var(--secondary)]">
+                            <img src={`https://api.dicebear.com/9.x/shapes/svg?seed=${seed}`} alt="avatar" className="w-full h-full object-cover" />
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
                   <div>
                     <label className="text-[13px] font-semibold text-[var(--muted-foreground)] mb-2 block uppercase tracking-wider">Room Name</label>
                     <input 
@@ -238,11 +251,15 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
         ) : (
           <div className="divide-y divide-[var(--border)] pb-24">
             {roomsToDisplay.map((rm: any) => (
-              <Link key={rm.roomId} href={`/room/${rm.roomId}`} className="flex items-center gap-4 px-4 py-4 hover:bg-[var(--secondary)]/30 transition-colors">
-                <div className="w-12 h-12 rounded-full bg-[var(--secondary)] flex items-center justify-center border border-[var(--border)] flex-shrink-0">
-                  <span className="text-sm font-bold text-[var(--muted-foreground)] uppercase">
-                    {rm.room.name.substring(0, 2)}
-                  </span>
+              <Link prefetch={true} key={rm.roomId} href={`/room/${rm.roomId}`} className="flex items-center gap-4 px-4 py-4 hover:bg-[var(--secondary)]/30 transition-colors">
+                <div className="w-12 h-12 rounded-full bg-[var(--secondary)] overflow-hidden flex items-center justify-center border border-[var(--border)] flex-shrink-0">
+                  {rm.room.avatarUrl ? (
+                    <img src={rm.room.avatarUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-sm font-bold text-[var(--muted-foreground)] uppercase">
+                      {rm.room.name.substring(0, 2)}
+                    </span>
+                  )}
                 </div>
                 
                 <div className="flex-1 min-w-0">

@@ -29,17 +29,11 @@ export default async function JoinRoomPage({ params }: { params: Promise<{ code:
     redirect(`/room/${room.id}`)
   }
 
-  // Calculate new position
-  const maxPosition = room.members.length > 0 
-    ? Math.max(...room.members.map(m => m.position)) 
-    : -1
-
   // Join room
   await prisma.roomMember.create({
     data: {
       roomId: room.id,
-      userId: userId,
-      position: maxPosition + 1
+      userId: userId
     }
   })
 

@@ -3,12 +3,13 @@
 import { createClient } from '@/utils/supabase/client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { syncUser } from '@/app/actions'
 
 type AuthMode = 'initial' | 'login' | 'signup'
 
 export default function LoginForm() {
+  const router = useRouter()
   const supabase = createClient()
   const searchParams = useSearchParams()
   const errorParam = searchParams.get('error')
@@ -30,6 +31,7 @@ export default function LoginForm() {
         const err = params.get('error')
         const errDesc = params.get('error_description')
         if (err) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setMessage(`Supabase Error: ${err}. ${errDesc ? decodeURIComponent(errDesc.replace(/\+/g, ' ')) : ''}`)
         }
       }
@@ -92,7 +94,7 @@ export default function LoginForm() {
         await syncUser()
         
         // If sign up is successful, redirect to home
-        window.location.href = '/'
+        router.push('/')
       } else if (mode === 'login') {
         const { data, error } = await supabase.auth.signInWithPassword({
           email: cleanEmail,
@@ -110,7 +112,7 @@ export default function LoginForm() {
         await syncUser()
         
         // If login is successful, redirect to home
-        window.location.href = '/'
+        router.push('/')
       }
     } catch (err: any) {
       setMessage(err.message || 'An error occurred during authentication.')
@@ -249,7 +251,7 @@ export default function LoginForm() {
                     onClick={() => { setMode('signup'); setMessage(''); }}
                     className="text-[13px] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
                   >
-                    Don't have an account? Sign up
+                    Don&apos;t have an account? Sign up
                   </button>
                 ) : (
                   <button
@@ -284,7 +286,7 @@ export default function LoginForm() {
 
         {/* Footer */}
         <div className="mt-12 text-center text-[12px] text-[var(--muted-foreground)]">
-          By continuing, you agree to KettleTrack's<br />
+          By continuing, you agree to KettleTrack&apos;s<br />
           <Link href="/terms" className="underline hover:text-[var(--foreground)] transition-colors">Terms of Service</Link>
           {' '}and{' '}
           <Link href="/privacy" className="underline hover:text-[var(--foreground)] transition-colors">Privacy Policy</Link>

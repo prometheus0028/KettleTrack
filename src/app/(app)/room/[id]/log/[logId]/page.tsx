@@ -2,8 +2,8 @@ import { prisma } from '@/utils/prisma'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ChevronLeft, ChevronDown } from 'lucide-react'
-import { updateWashLog, deleteWashLog } from '../../actions'
+import { ChevronLeft } from 'lucide-react'
+import { deleteWashLog } from '../../actions'
 import { DeleteLogButton } from './DeleteLogButton'
 
 export default async function EditWashLogPage({ params }: { params: Promise<{ id: string, logId: string }> }) {
@@ -20,12 +20,18 @@ export default async function EditWashLogPage({ params }: { params: Promise<{ id
     where: { id: logId, roomId },
     include: {
       washedBy: true,
+      subgroup: {
+        include: {
+          members: {
+            include: { user: true }
+          }
+        }
+      },
       room: {
         include: {
           members: {
             where: { isActive: true },
-            include: { user: true },
-            orderBy: { position: 'asc' }
+            include: { user: true }
           }
         }
       }
@@ -47,11 +53,29 @@ export default async function EditWashLogPage({ params }: { params: Promise<{ id
     minute: '2-digit'
   })
 
+  let groupName = "Unknown group"
+  if (log.subgroup) {
+    const otherMembers = log.subgroup.members.filter(m => m.userId !== session.user.id)
+    const hasMe = log.subgroup.members.some(m => m.userId === session.user.id)
+    
+    const names = []
+    if (hasMe) names.push('You')
+    names.push(...otherMembers.map(m => m.user.name || m.user.email.split('@')[0]))
+    
+    if (names.length > 2) {
+      groupName = names.slice(0, -1).join(', ') + ' & ' + names[names.length - 1]
+    } else if (names.length === 2) {
+      groupName = names.join(' & ')
+    } else if (names.length === 1) {
+      groupName = names[0]
+    }
+  }
+
   return (
     <div className="flex flex-col min-h-full bg-[var(--background)]">
       {/* Header */}
       <div className="bg-[#1cc29f] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-10 shadow-sm">
-        <Link href={`/room/${roomId}`} className="p-2 -ml-2 rounded-full hover:bg-white/20 transition-colors">
+        <Link prefetch={true} href={`/room/${roomId}`} className="p-2 -ml-2 rounded-full hover:bg-white/20 transition-colors">
           <ChevronLeft className="w-5 h-5" />
         </Link>
         <h1 className="text-[17px] font-semibold">Wash details</h1>
@@ -73,32 +97,30 @@ export default async function EditWashLogPage({ params }: { params: Promise<{ id
           <p className="text-[var(--muted-foreground)] text-sm mt-1">{dateStr} at {timeStr}</p>
         </div>
 
-        <form action={updateWashLog} className="space-y-4">
-          <input type="hidden" name="logId" value={log.id} />
-          <input type="hidden" name="roomId" value={roomId} />
-          
-          <div className="relative">
+        <div className="space-y-5">
+          <div>
             <label className="block text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-2">Who washed it?</label>
-            <select 
-              name="washerId" 
-              defaultValue={log.washedById}
-              className="w-full bg-input-bg border border-[var(--border)] rounded-lg p-3.5 pr-10 text-[15px] focus:outline-none focus:border-[#1cc29f] text-[var(--foreground)] appearance-none font-medium"
-            >
-              {log.room.members.map((m) => (
-                <option key={m.userId} value={m.userId}>
-                  {m.user.id === session.user.id ? 'You' : m.user.name || m.user.email}
-                </option>
-              ))}
-            </select>
-            <div className="absolute right-3 top-[38px] pointer-events-none text-[var(--muted-foreground)]">
-              <ChevronDown className="w-5 h-5" />
+            <div className="w-full bg-[var(--secondary)]/50 border border-[var(--border)] rounded-lg p-3.5 text-[15px] text-[var(--foreground)] font-medium flex items-center gap-3">
+              <div className="w-7 h-7 rounded-full overflow-hidden bg-[var(--secondary)] border border-[var(--border)]">
+                {log.washedBy.avatarUrl ? (
+                  <img src={log.washedBy.avatarUrl} alt="" className="w-full h-full object-cover p-0.5 rounded-full" />
+                ) : (
+                  <span className="text-[11px] font-bold text-[var(--muted-foreground)] flex items-center justify-center h-full">
+                    {log.washedBy.name ? log.washedBy.name.charAt(0).toUpperCase() : log.washedBy.email.charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </div>
+              {log.washedBy.id === session.user.id ? 'You' : (log.washedBy.name || log.washedBy.email)}
             </div>
           </div>
 
-          <button className="w-full bg-[#1cc29f] text-white py-3 rounded-lg font-medium text-[15px] hover:bg-[#159e80] active:scale-[0.98] transition-all">
-            Save Changes
-          </button>
-        </form>
+          <div>
+            <label className="block text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-2">For Group</label>
+            <div className="w-full bg-[var(--secondary)]/50 border border-[var(--border)] rounded-lg p-3.5 text-[15px] text-[var(--foreground)] font-medium">
+              {groupName}
+            </div>
+          </div>
+        </div>
 
         <form action={deleteWashLog} className="mt-4">
           <input type="hidden" name="logId" value={log.id} />

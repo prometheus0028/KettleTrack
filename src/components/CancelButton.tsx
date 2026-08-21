@@ -10,7 +10,7 @@ export function CancelButton() {
   
   if (isLoading) {
     return (
-      <div className="fixed inset-0 z-50 bg-[var(--background)] flex flex-col items-center justify-center">
+      <div className="fixed inset-0 z-[100] bg-[var(--background)] flex flex-col items-center justify-center">
         <LoadingSpinner />
       </div>
     )
